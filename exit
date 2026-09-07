@@ -1,0 +1,2047 @@
+[33mcommit 3f1f76dfc098e87379335e9bd48cf2972e2d8109[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: tjarvenpaa <teemu.jarvenpaa@hamk.fi>
+Date:   Mon Aug 31 14:03:24 2026 +0300
+
+    Implement code changes to enhance functionality and improve performance
+
+[1mdiff --git a/docs/theory/Week02-theory-snmp.md b/docs/theory/Week02-theory-snmp.md[m
+[1mindex 6e6b1ed..5ee2143 100644[m
+[1m--- a/docs/theory/Week02-theory-snmp.md[m
+[1m+++ b/docs/theory/Week02-theory-snmp.md[m
+[36m@@ -1,4 +1,4 @@[m
+[31m-Miksi verkkoa valvotaan? [m
+[32m+[m[32m# Miksi verkkoa valvotaan? [m
+ [m
+ Tietoverkko on yksi organisaation tärkeimmistä teknisistä järjestelmistä. Käytännössä lähes kaikki palvelut ovat tavalla tai toisella riippuvaisia toimivasta verkosta. Verkon kautta käytetään esimerkiksi pilvipalveluita, sähköpostia, tiedostopalveluita, toiminnanohjausjärjestelmiä ja verkkopalveluita. [m
+ [m
+[36m@@ -20,29 +20,22 @@[m [mtukea verkon kehittämistä pitkällä aikavälillä [m
+ [m
+ Ilman jatkuvaa valvontaa verkon ylläpito perustuu pitkälti arvailuun ja käyttäjien vikailmoituksiin. [m
+ [m
+[31m- [m
+ [m
+[31m-Verkon ylläpidon haasteet [m
+[32m+[m
+[32m+[m[32m# Verkon ylläpidon haasteet [m
+ [m
+ Nykyaikainen tietoverkko koostuu tyypillisesti useista eri teknologioista ja järjestelmistä. [m
+ [m
+ Yksinkertaisessakin ympäristössä voi olla: [m
+ [m
+[31m-reitittimiä [m
+[31m-[m
+[31m-kytkimiä [m
+[31m-[m
+[31m-langattomia tukiasemia [m
+[31m-[m
+[31m-palvelimia [m
+[31m-[m
+[31m-virtualisointialustoja [m
+[31m-[m
+[31m-pilvipalveluita [m
+[31m-[m
+[31m-tietoturvalaitteita [m
+[31m-[m
+[31m-internet-yhteyksiä [m
+[32m+[m[32m* reitittimiä [m
+[32m+[m[32m* kytkimiä [m
+[32m+[m[32m* langattomia tukiasemia [m
+[32m+[m[32m* palvelimia [m
+[32m+[m[32m* virtualisointialustoja [m
+[32m+[m[32m* pilvipalveluita [m
+[32m+[m[32m* tietoturvalaitteita [m
+[32m+[m[32m* useita internet-yhteyksiä [m
+ [m
+ Jokainen näistä voi muodostaa häiriötilanteen lähteen. [m
+ [m
+[36m@@ -54,119 +47,97 @@[m [mTodellisuudessa taustalla voi olla kymmeniä erilaisia syitä. [m
+ [m
+ Ongelma voi liittyä esimerkiksi: [m
+ [m
+[31m-fyysiseen verkkokaapeliin [m
+[31m-[m
+[31m-kytkinporttiin [m
+[31m-[m
+[31m-väärään VLAN-konfiguraatioon [m
+[31m-[m
+[31m-täyttyneeseen verkkoliitäntään [m
+[31m-[m
+[31m-DNS-palveluun [m
+[31m-[m
+[31m-palvelimen suorituskykyyn [m
+[31m-[m
+[31m-virheelliseen reititykseen [m
+[31m-[m
+[31m-internet-operaattorin häiriöön [m
+[32m+[m[32m* fyysiseen verkkokaapeliin [m
+[32m+[m[32m* kytkinporttiin [m
+[32m+[m[32m* väärään VLAN-konfiguraatioon [m
+[32m+[m[32m* täyttyneeseen verkkoliitäntään [m
+[32m+[m[32m* DNS-palveluun [m
+[32m+[m[32m* palvelimen suorituskykyyn [m
+[32m+[m[32m* virheelliseen reititykseen [m
+[32m+[m[32m* internet-operaattorin häiriöön [m
+ [m
+ Mitä suurempi ympäristö on, sitä vaikeampaa järjestelmän kokonaistilan hahmottaminen ilman valvontatyökaluja on. [m
+ [m
+  [m
+ [m
+[31m-Miksi häiriöitä syntyy? [m
+[32m+[m[32m## Miksi häiriöitä syntyy? [m
+ [m
+ Vaikka verkko olisi suunniteltu hyvin, häiriöitä syntyy väistämättä. [m
+ [m
+ Tyypillisiä syitä ovat: [m
+ [m
+[31m-Laitteistoviat [m
+[32m+[m[32m* Laitteistoviat [m
+ [m
+[31m-Laitteiden komponentit kuluvat ajan myötä. [m
+[32m+[m[32m* Laitteiden komponentit kuluvat ajan myötä. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-verkkokortti voi rikkoutua [m
+[31m-[m
+[31m-virtalähde voi vioittua [m
+[31m-[m
+[31m-levyjärjestelmä voi epäonnistua [m
+[31m-[m
+[31m-kuitumoduuli voi lakata toimimasta [m
+[32m+[m[32m* verkkokortti voi rikkoutua [m
+[32m+[m[32m* virtalähde voi vioittua [m
+[32m+[m[32m* levyjärjestelmä voi epäonnistua [m
+[32m+[m[32m* kuitumoduuli voi lakata toimimasta [m
+ [m
+  [m
+ [m
+[31m-Konfiguraatiovirheet [m
+[32m+[m[32m## Konfiguraatiovirheet [m
+ [m
+ Yksi yleisimmistä häiriöiden aiheuttajista on ihmisen tekemä virhe. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-väärä IP-osoite [m
+[31m-[m
+[31m-puuttuva reitti [m
+[31m-[m
+[31m-virheellinen palomuurisääntö [m
+[31m-[m
+[31m-väärä VLAN-määritys [m
+[32m+[m[32m* väärä IP-osoite [m
+[32m+[m[32m* puuttuva reitti [m
+[32m+[m[32m* virheellinen palomuurisääntö [m
+[32m+[m[32m* väärä VLAN-määritys [m
+ [m
+ Pienikin muutos voi aiheuttaa laajoja vaikutuksia koko verkkoon. [m
+ [m
+  [m
+ [m
+[31m-Kapasiteettiongelmat [m
+[32m+[m[32m## Kapasiteettiongelmat [m
+ [m
+ Alun perin riittävä verkko voi muuttua kuormituksen kasvaessa hitaaksi. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-käyttäjämäärä kasvaa [m
+[31m-[m
+[31m-palveluita lisätään [m
+[31m-[m
+[31m-varmuuskopiointi käyttää enemmän kaistaa [m
+[31m-[m
+[31m-videoliikenne lisääntyy [m
+[32m+[m[32m* käyttäjämäärä kasvaa [m
+[32m+[m[32m* palveluita lisätään [m
+[32m+[m[32m* varmuuskopiointi käyttää enemmän kaistaa [m
+[32m+[m[32m* videoliikenne lisääntyy [m
+ [m
+ Tällöin palvelu ei välttämättä lakkaa toimimasta kokonaan, mutta sen suorituskyky heikkenee merkittävästi. [m
+ [m
+  [m
+ [m
+[31m-Ohjelmistovirheet [m
+[32m+[m[32m## Ohjelmistovirheet [m
+ [m
+ Verkkolaitteiden käyttöjärjestelmät sisältävät ohjelmistovirheitä samalla tavalla kuin muutkin ohjelmistot. [m
+ [m
+ Virheet voivat aiheuttaa: [m
+ [m
+[31m-yhteyksien katkeamista [m
+[31m-[m
+[31m-muistivuotoja [m
+[31m-[m
+[31m-suorituskykyongelmia [m
+[31m-[m
+[31m-palveluiden kaatumisia [m
+[32m+[m[32m* yhteyksien katkeamista [m
+[32m+[m[32m* muistivuotoja [m
+[32m+[m[32m* suorituskykyongelmia [m
+[32m+[m[32m* palveluiden kaatumisia [m
+ [m
+  [m
+ [m
+[31m-Ulkoiset tekijät [m
+[32m+[m[32m## Ulkoiset tekijät [m
+ [m
+ Kaikki ongelmat eivät sijaitse organisaation omassa ympäristössä. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-sähkökatkokset [m
+[31m-[m
+[31m-internet-operaattorin häiriöt [m
+[31m-[m
+[31m-pilvipalveluiden ongelmat [m
+[31m-[m
+[31m-palvelunestohyökkäykset [m
+[32m+[m[32m* sähkökatkokset [m
+[32m+[m[32m* internet-operaattorin häiriöt [m
+[32m+[m[32m* pilvipalveluiden ongelmat [m
+[32m+[m[32m* palvelunestohyökkäykset [m
+ [m
+ voivat näkyä käyttäjälle samalla tavalla kuin paikallinen verkkovika. [m
+ [m
+  [m
+ [m
+[31m-Miksi pelkkä käyttäjän vikailmoitus ei riitä? [m
+[32m+[m[32m## Miksi pelkkä käyttäjän vikailmoitus ei riitä? [m
+ [m
+ Monessa organisaatiossa ensimmäinen merkki ongelmasta on käyttäjän yhteydenotto helpdeskiin. [m
+ [m
+[36m@@ -184,17 +155,13 @@[m [mKäyttäjä näkee vain oireen. [m
+ [m
+ Ylläpitäjän tehtävä on selvittää: [m
+ [m
+[31m-mikä aiheuttaa oireen [m
+[31m-[m
+[31m-missä ongelma sijaitsee [m
+[31m-[m
+[31m-kuinka laajalle ongelma vaikuttaa [m
+[31m-[m
+[31m-kuinka vakava ongelma on [m
+[32m+[m[32m* mikä aiheuttaa oireen [m
+[32m+[m[32m* missä ongelma sijaitsee [m
+[32m+[m[32m* kuinka laajalle ongelma vaikuttaa [m
+[32m+[m[32m* kuinka vakava ongelma on [m
+ [m
+ Ilman mittausdataa ongelman selvittäminen muuttuu arvailuksi. [m
+ [m
+[31m- [m
+ [m
+ Esimerkkitilanne [m
+ [m
+[36m@@ -204,75 +171,59 @@[m [mKäyttäjä ilmoittaa: [m
+ [m
+ Ylläpitäjän on selvitettävä esimerkiksi seuraavat kysymykset: [m
+ [m
+[31m-Onko yhteys poikki? [m
+[32m+[m[32m**Onko yhteys poikki?**[m
+ [m
+ Jos verkkoyhteys katkeilee, sovellukset voivat vaikuttaa hitailta vaikka varsinainen ongelma olisi verkkokerroksessa. [m
+ [m
+[31m- [m
+[31m-[m
+[31m-Onko palvelin kuormittunut? [m
+[32m+[m[32m**Onko palvelin kuormittunut?**[m
+ [m
+ Jos palvelimen prosessorikuorma on jatkuvasti 100 %, käyttäjä kokee palvelun hitaaksi vaikka verkko toimisi normaalisti. [m
+ [m
+[31m- [m
+[31m-[m
+[31m-Onko verkkoliitäntä täynnä? [m
+[32m+[m[32m**Onko verkkoliitäntä täynnä?**[m
+ [m
+ Jos palvelimen tai reitittimen verkkoliitäntä toimii jatkuvasti lähellä maksimikapasiteettiaan, pakettien määrä kasvaa ja viiveet pitenevät. [m
+ [m
+[31m- [m
+[31m-[m
+[31m-Onko DNS-palvelussa ongelma? [m
+[32m+[m[32m**Onko DNS-palvelussa ongelma?**[m
+ [m
+ Monet sovellukset käyttävät nimipalvelua jatkuvasti. [m
+ [m
+ Jos DNS-palvelin vastaa hitaasti, käyttäjä voi tulkita ongelman verkkoviaksi tai palvelinviaksi. [m
+ [m
+[31m- [m
+[31m-[m
+[31m-Vaikuttaako ongelma kaikkiin käyttäjiin? [m
+[32m+[m[32m**Vaikuttaako ongelma kaikkiin käyttäjiin?**[m
+ [m
+ Jos ongelma koskee vain yhtä käyttäjää, syynä voi olla paikallinen työasema tai lähiverkkoyhteys. [m
+ [m
+ Jos ongelma koskee kaikkia käyttäjiä, syy on todennäköisesti keskeisemmässä infrastruktuurissa. [m
+ [m
+[31m- [m
+ [m
+[31m-Reaktiivinen ja proaktiivinen ylläpito [m
+[32m+[m[32m# Reaktiivinen ja proaktiivinen ylläpito [m
+ [m
+ Verkon ylläpito voidaan jakaa kahteen toimintamalliin. [m
+ [m
+[31m-Reaktiivinen ylläpito [m
+[32m+[m[32m## Reaktiivinen ylläpito [m
+ [m
+ Reaktiivisessa ylläpidossa toimenpiteisiin ryhdytään vasta, kun ongelma on jo vaikuttanut käyttäjiin. [m
+ [m
+ Toimintamalli on usein seuraava: [m
+ [m
+[31m-Häiriö tapahtuu. [m
+[31m-[m
+[31m-Käyttäjä ilmoittaa ongelmasta. [m
+[31m-[m
+[31m-Ylläpito aloittaa selvityksen. [m
+[31m-[m
+[31m-Ongelma korjataan. [m
+[32m+[m[32m1. Häiriö tapahtuu. [m
+[32m+[m[32m2. Käyttäjä ilmoittaa ongelmasta. [m
+[32m+[m[32m3. Ylläpito aloittaa selvityksen. [m
+[32m+[m[32m4. Ongelma korjataan. [m
+ [m
+ Mallin haittapuolena on, että palvelukatko on jo ehtinyt vaikuttaa käyttäjiin. [m
+ [m
+[31m- [m
+ [m
+[31m-Proaktiivinen ylläpito [m
+[32m+[m[32m## Proaktiivinen ylläpito [m
+ [m
+ Proaktiivisessa ylläpidossa verkon toimintaa seurataan jatkuvasti mittausten avulla. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-kaistan käyttöaste kasvaa [m
+[31m-[m
+[31m-muistin käyttö lisääntyy [m
+[31m-[m
+[31m-levytila alkaa loppua [m
+[31m-[m
+[31m-verkkovirheet lisääntyvät [m
+[32m+[m[32m* kaistan käyttöaste kasvaa [m
+[32m+[m[32m* muistin käyttö lisääntyy [m
+[32m+[m[32m* levytila alkaa loppua [m
+[32m+[m[32m* verkkovirheet lisääntyvät [m
+ [m
+ Valvontajärjestelmä voi havaita tilanteen ennen varsinaista häiriötä. [m
+ [m
+[36m@@ -282,102 +233,87 @@[m [mTällöin ylläpito voi korjata ongelman jo ennen kuin käyttäjät huo[m
+ [m
+ Esimerkki [m
+ [m
+[32m+[m[32m```text[m[41m [m
+ Ilman valvontaa: [m
+ [m
+[31m-1     Verkkoliitäntä täyttyy [m
+[31m-[m
+[31m-2             ↓ [m
+[31m-[m
+[31m-3     Yhteydet hidastuvat [m
+[31m-[m
+[31m-4             ↓ [m
+[31m-[m
+[31m-5     Käyttäjät valittavat [m
+[31m-[m
+[31m-6             ↓ [m
+[31m-[m
+[31m-7     Vikaa ryhdytään tutkimaan [m
+[31m-[m
+[32m+[m[32m     Verkkoliitäntä täyttyy [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Yhteydet hidastuvat [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Käyttäjät valittavat [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Vikaa ryhdytään tutkimaan [m
+[32m+[m[32m```[m
+[32m+[m[32mKun tilanne verkonvalvonta työkalun avulla toteutettuna, proaktiivisena mallina:[m[41m [m
+[32m+[m
+[32m+[m[32m```text[m
+ Valvonnan avulla: [m
+ [m
+[31m-1     Verkkoliitäntä saavuttaa 80 % käyttöasteen [m
+[31m-[m
+[31m-2             ↓ [m
+[31m-[m
+[31m-3     Valvontajärjestelmä hälyttää [m
+[31m-[m
+[31m-4             ↓ [m
+[31m-[m
+[31m-5     Kapasiteettia lisätään [m
+[31m-[m
+[31m-6             ↓ [m
+[31m-[m
+[31m-7     Käyttäjät eivät huomaa ongelmaa [m
+[31m-[m
+[32m+[m[32m     Verkkoliitäntä saavuttaa 80 % käyttöasteen [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Valvontajärjestelmä hälyttää [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Kapasiteettia lisätään [m
+[32m+[m[32m             ↓ [m
+[32m+[m[32m     Käyttäjät eivät huomaa ongelmaa [m
+[32m+[m[32m```[m
+  [m
+ [m
+[31m-Miksi mittaaminen on välttämätöntä? [m
+[32m+[m[32m# Miksi mittaaminen on välttämätöntä? [m
+ [m
+ Verkonhallinnassa tehdyt päätökset tulisi perustaa mitattuun tietoon eikä oletuksiin. [m
+ [m
+ Mittaamisen avulla voidaan vastata esimerkiksi seuraaviin kysymyksiin: [m
+ [m
+[31m-Onko laite käytettävissä? [m
+[31m-[m
+[31m-Kuinka paljon verkkoliikennettä kulkee verkossa? [m
+[31m-[m
+[31m-Mitkä yhteydet ovat kuormittuneita? [m
+[31m-[m
+[31m-Milloin ongelma alkoi? [m
+[31m-[m
+[31m-Kuinka vakava ongelma on? [m
+[31m-[m
+[31m-Vaikuttaako ongelma yhteen vai useaan käyttäjään? [m
+[31m-[m
+[31m-Onko tilanne poikkeuksellinen vai normaali? [m
+[32m+[m[32m* Onko laite käytettävissä? [m
+[32m+[m[32m* Kuinka paljon verkkoliikennettä kulkee verkossa? [m
+[32m+[m[32m* Mitkä yhteydet ovat kuormittuneita? [m
+[32m+[m[32m* Milloin ongelma alkoi? [m
+[32m+[m[32m* Kuinka vakava ongelma on? [m
+[32m+[m[32m* Vaikuttaako ongelma yhteen vai useaan käyttäjään? [m
+[32m+[m[32m* Onko tilanne poikkeuksellinen vai normaali? [m
+ [m
+ Tämän vuoksi nykyaikaisessa verkonhallinnassa kerätään jatkuvasti tietoa verkkolaitteista, palvelimista ja palveluista. Yksi yleisimmin käytetyistä tiedonkeruumenetelmistä on SNMP (Simple Network Management Protocol), jonka toimintaa tarkastellaan seuraavaksi. [m
+ [m
+[31m-[m
+[31m-Häiriönhallinta (Fault Management) ja Observability[m
+[32m+[m[32m# Häiriönhallinta (Fault Management) ja Observability[m
+ [m
+ Modernit tietoverkot ja IT-järjestelmät muodostuvat useista palvelimista, verkkolaitteista, pilvipalveluista, sovelluksista ja niiden välisistä riippuvuuksista. Mitä monimutkaisempi ympäristö on, sitä tärkeämpää on kyky havaita häiriöt nopeasti, ymmärtää niiden syyt ja palauttaa palvelut normaalitilaan mahdollisimman vähäisin vaikutuksin.[m
+ [m
+ Häiriönhallinnan tavoitteena on varmistaa järjestelmien käytettävyys, luotettavuus ja suorituskyky. Perinteisesti häiriönhallinta on perustunut erilaisten valvontatyökalujen tuottamiin hälytyksiin, mutta nykyisissä ympäristöissä korostuu myös observability eli järjestelmän havainnoitavuus. Observability auttaa ymmärtämään paitsi sen, että ongelma on olemassa, myös miksi se tapahtuu.[m
+ [m
+[31m-FCAPS-malli[m
+[32m+[m[32m## FCAPS-malli[m
+ [m
+ Tietoliikenne- ja verkkoympäristöjen hallintaa voidaan tarkastella kansainvälisesti tunnetun FCAPS-mallin avulla. Malli jakaa verkonhallinnan viiteen osa-alueeseen:[m
+ [m
+[31m-Fault (Häiriönhallinta)[m
+[32m+[m[32m**Fault (Häiriönhallinta)**[m
+ [m
+ Keskittyy vikojen havaitsemiseen, tunnistamiseen, analysointiin ja korjaamiseen. Tavoitteena on minimoida käyttökatkojen vaikutukset ja palauttaa palvelut mahdollisimman nopeasti.[m
+ [m
+[31m-Configuration (Konfiguraationhallinta)[m
+[32m+[m[32m**Configuration (Konfiguraationhallinta)**[m
+ [m
+ Vastaa laitteiden ja palveluiden asetusten hallinnasta, dokumentoinnista sekä muutosten seurannasta. Konfiguraationhallinnan avulla voidaan esimerkiksi palauttaa toimiva konfiguraatio virheellisen muutoksen jälkeen.[m
+ [m
+[31m-Accounting (Käytön seuranta)[m
+[32m+[m[32m**Accounting (Käytön seuranta)**[m
+ [m
+ Seuraa resurssien käyttöä, käyttäjiä ja mahdollisia kustannuksia. Esimerkkejä ovat verkkoliikenteen mittaaminen tai pilvipalveluiden kustannusseuranta.[m
+ [m
+[31m-Performance (Suorituskyvyn hallinta)[m
+[32m+[m[32m**Performance (Suorituskyvyn hallinta)**[m
+ [m
+ Tarkastelee järjestelmien ja verkkojen suorituskykyä. Tavoitteena on havaita mahdolliset pullonkaulat ennen kuin ne aiheuttavat häiriöitä.[m
+ [m
+[31m-Security (Tietoturvallisuus)[m
+[32m+[m[32m**Security (Tietoturvallisuus)**[m
+ [m
+ Keskittyy järjestelmien suojaamiseen, poikkeamien tunnistamiseen sekä tietoturvatapahtumien hallintaan.[m
+ [m
+ Kurssilla keskitytään erityisesti seuraaviin osa-alueisiin:[m
+ [m
+[31m-Fault Management[m
+[31m-Performance Management[m
+[31m-Configuration Management[m
+[32m+[m[32m* Fault Management[m
+[32m+[m[32m* Performance Management[m
+[32m+[m[32m* Configuration Management[m
+ [m
+ Nämä muodostavat käytännössä päivittäisen verkkoylläpidon keskeisimmän osaamisen perustan.[m
+ [m
+[31m-Häiriönhallinnan prosessi[m
+[32m+[m[32m## Häiriönhallinnan prosessi[m
+ [m
+ Häiriönhallinta on järjestelmällinen prosessi, jonka avulla ongelmat ratkaistaan tehokkaasti ja niiden toistuminen pyritään estämään.[m
+ [m
+[36m@@ -385,10 +321,10 @@[m [mHäiriönhallinta on järjestelmällinen prosessi, jonka avulla ongelmat ratkais[m
+ [m
+ Ensimmäinen vaihe on poikkeaman tunnistaminen. Häiriö voidaan havaita:[m
+ [m
+[31m-Valvontajärjestelmän hälytyksenä[m
+[31m-Lokiviestien perusteella[m
+[31m-Suorituskykymittareiden poikkeamina[m
+[31m-Käyttäjän ilmoittamana vikana[m
+[32m+[m[32m* Valvontajärjestelmän hälytyksenä[m
+[32m+[m[32m* Lokiviestien perusteella[m
+[32m+[m[32m* Suorituskykymittareiden poikkeamina[m
+[32m+[m[32m* Käyttäjän ilmoittamana vikana[m
+ [m
+ Esimerkki:[m
+ [m
+[36m@@ -404,33 +340,34 @@[m [mKun häiriö on havaittu, seuraava tehtävä on selvittää mitä on tapahtunut.[m
+ [m
+ Tyypillisiä kysymyksiä ovat:[m
+ [m
+[31m-Mikä palvelu on häiriintynyt?[m
+[31m-Mitkä järjestelmät ovat vaikutusalueella?[m
+[31m-Milloin ongelma alkoi?[m
+[31m-Onko kyseessä uusi vai aiemmin tunnettu ongelma?[m
+[32m+[m[32m* Mikä palvelu on häiriintynyt?[m
+[32m+[m[32m* Mitkä järjestelmät ovat vaikutusalueella?[m
+[32m+[m[32m* Milloin ongelma alkoi?[m
+[32m+[m[32m* Onko kyseessä uusi vai aiemmin tunnettu ongelma?[m
+ [m
+ Esimerkiksi verkkopalvelun toimimattomuus voi johtua:[m
+ [m
+[31m-Verkkoyhteysongelmasta[m
+[31m-DNS-ongelmasta[m
+[31m-Palvelimen kaatumisesta[m
+[31m-Sovellusvirheestä[m
+[32m+[m[32m* Verkkoyhteysongelmasta[m
+[32m+[m[32m* DNS-ongelmasta[m
+[32m+[m[32m* Palvelimen kaatumisesta[m
+[32m+[m[32m* Sovellusvirheestä[m
+[32m+[m
+ 3. Häiriön analysointi[m
+ [m
+ Analysointivaiheessa etsitään häiriön juurisyy.[m
+ [m
+ Tyypillisiä menetelmiä ovat:[m
+ [m
+[31m-Lokien tutkiminen[m
+[31m-Mittausdatan analysointi[m
+[31m-Verkkoliikenteen tarkastelu[m
+[31m-Muutoshistorian tarkistaminen[m
+[32m+[m[32m* Lokien tutkiminen[m
+[32m+[m[32m* Mittausdatan analysointi[m
+[32m+[m[32m* Verkkoliikenteen tarkastelu[m
+[32m+[m[32m* Muutoshistorian tarkistaminen[m
+ [m
+ Monissa tapauksissa ongelman syy löytyy äskettäin tehdystä muutoksesta, kuten:[m
+ [m
+[31m-ohjelmistopäivityksestä[m
+[31m-verkkokonfiguraation muutoksesta[m
+[31m-virheellisestä automaatiosta[m
+[32m+[m[32m* ohjelmistopäivityksestä[m
+[32m+[m[32m* verkkokonfiguraation muutoksesta[m
+[32m+[m[32m* virheellisestä automaatiosta[m
+ [m
+ Tätä vaihetta kutsutaan usein myös root cause analysis (RCA)-prosessiksi.[m
+ [m
+[36m@@ -440,11 +377,11 @@[m [mKun syy on tunnistettu, voidaan toteuttaa tarvittavat korjaavat toimenpiteet.[m
+ [m
+ Esimerkkejä:[m
+ [m
+[31m-Palvelun uudelleenkäynnistys[m
+[31m-Virheellisen konfiguraation korjaaminen[m
+[31m-Verkkolaitteen vaihto[m
+[31m-Ohjelmistovirheen korjauspäivitys[m
+[31m-Muutoksen peruuttaminen (rollback)[m
+[32m+[m[32m* Palvelun uudelleenkäynnistys[m
+[32m+[m[32m* Virheellisen konfiguraation korjaaminen[m
+[32m+[m[32m* Verkkolaitteen vaihto[m
+[32m+[m[32m* Ohjelmistovirheen korjauspäivitys[m
+[32m+[m[32m* Muutoksen peruuttaminen (rollback)[m
+ [m
+ Korjausten jälkeen järjestelmän toiminta tulee varmistaa mittaamalla ja testaamalla palvelun palautuminen normaalitilaan.[m
+ [m
+[36m@@ -454,10 +391,10 @@[m [mVakavampien häiriöiden jälkeen suoritetaan jälkianalyysi.[m
+ [m
+ Tavoitteena on vastata kysymyksiin:[m
+ [m
+[31m-Mikä aiheutti häiriön?[m
+[31m-Miksi sitä ei havaittu aikaisemmin?[m
+[31m-Miten vastaava ongelma voidaan estää tulevaisuudessa?[m
+[31m-Tarvitaanko uusia valvontoja tai prosesseja?[m
+[32m+[m[32m* Mikä aiheutti häiriön?[m
+[32m+[m[32m* Miksi sitä ei havaittu aikaisemmin?[m
+[32m+[m[32m* Miten vastaava ongelma voidaan estää tulevaisuudessa?[m
+[32m+[m[32m* Tarvitaanko uusia valvontoja tai prosesseja?[m
+ [m
+ Jälkianalyysi on tärkeä osa organisaation oppimista ja jatkuvaa kehittämistä.[m
+ [m
+[36m@@ -467,16 +404,16 @@[m [mKaikki häiriöt ja niiden ratkaisut tulee dokumentoida.[m
+ [m
+ Tyypillisesti dokumentaatioon kirjataan:[m
+ [m
+[31m-Tapahtuman aikajana[m
+[31m-Ongelman kuvaus[m
+[31m-Vaikutukset palveluihin[m
+[31m-Juurisyy[m
+[31m-Tehdyt korjaustoimenpiteet[m
+[31m-Kehitystoimenpiteet[m
+[32m+[m[32m* Tapahtuman aikajana[m
+[32m+[m[32m* Ongelman kuvaus[m
+[32m+[m[32m* Vaikutukset palveluihin[m
+[32m+[m[32m* Juurisyy (jos selviää)[m
+[32m+[m[32m* Tehdyt korjaustoimenpiteet[m
+[32m+[m[32m* Kehitystoimenpiteet[m
+ [m
+ Hyvä dokumentaatio nopeuttaa tulevien ongelmien ratkaisemista ja tukee organisaation tiedonhallintaa.[m
+ [m
+[31m-Observability[m
+[32m+[m[32m## Observability[m
+ [m
+ Perinteinen monitorointi vastaa kysymykseen:[m
+ [m
+[36m@@ -488,96 +425,86 @@[m [mMiksi järjestelmä ei toimi odotetulla tavalla?[m
+ [m
+ Observability perustuu kolmeen keskeiseen tietolähteeseen:[m
+ [m
+[31m-Metrics[m
+[32m+[m[32m### Metrics[m
+ [m
+ Metrikat ovat numeerisia mittauksia järjestelmän toiminnasta.[m
+ [m
+ Esimerkkejä:[m
+ [m
+[31m-CPU-kuormitus[m
+[31m-Muistin käyttö[m
+[31m-Verkkoliikenteen määrä[m
+[31m-Levyn käyttöaste[m
+[32m+[m[32m* CPU-kuormitus[m
+[32m+[m[32m* Muistin käyttö[m
+[32m+[m[32m* Verkkoliikenteen määrä[m
+[32m+[m[32m* Levyn käyttöaste[m
+ [m
+ Metrikoiden avulla voidaan tunnistaa suorituskykyongelmia ja havaita poikkeamia.[m
+ [m
+[31m-Logs[m
+[32m+[m[32m### Logs[m
+ [m
+ Lokit sisältävät yksityiskohtaisia tapahtumatietoja järjestelmästä.[m
+ [m
+ Esimerkkejä:[m
+ [m
+[31m-Kirjautumiset[m
+[31m-Virheilmoitukset[m
+[31m-Palveluiden käynnistykset[m
+[31m-Konfiguraatiomuutokset[m
+[32m+[m[32m* Kirjautumiset[m
+[32m+[m[32m* Virheilmoitukset[m
+[32m+[m[32m* Palveluiden käynnistykset[m
+[32m+[m[32m* Konfiguraatiomuutokset[m
+ [m
+ Lokit ovat usein tärkein tietolähde juurisyyn analysoinnissa.[m
+ [m
+[31m-Traces[m
+[32m+[m[32m### Traces[m
+ [m
+ Jäljitystiedot kuvaavat yksittäisen palvelupyynnön kulkua useiden järjestelmien läpi.[m
+ [m
+ Niiden avulla voidaan nähdä esimerkiksi:[m
+ [m
+[31m-Missä vaiheessa sovellus hidastuu[m
+[31m-Mikä palvelukomponentti aiheuttaa virheen[m
+[31m-Kuinka kauan eri käsittelyvaiheet kestävät[m
+[32m+[m[32m* Missä vaiheessa sovellus hidastuu[m
+[32m+[m[32m* Mikä palvelukomponentti aiheuttaa virheen[m
+[32m+[m[32m* Kuinka kauan eri käsittelyvaiheet kestävät[m
+ [m
+ Traces ovat erityisen hyödyllisiä hajautetuissa järjestelmissä ja mikropalveluarkkitehtuureissa. Tämän takia kurssilla keskitytään enemmän metriikoiden ja logien käyttämiseen. [m
+ [m
+ [m
+ [m
+ [m
+[31m-Miten observability-dataa kerätään? [m
+[32m+[m[32m## Miten observability-dataa kerätään? [m
+ [m
+ Jotta häiriö voidaan havaita, analysoida ja korjata, tarvitaan tietoa siitä, mitä verkossa ja järjestelmissä tapahtuu. Tätä tietoa kutsutaan observability-dataksi. Se koostuu esimerkiksi suorituskykymittauksista, lokeista, hälytyksistä ja verkkoliikenteen tiedoista. Observabilityn tavoitteena on antaa ylläpitäjälle mahdollisuus vastata kysymyksiin: [m
+ [m
+[31m-Onko järjestelmä kunnossa? [m
+[31m-[m
+[31m-Mitä juuri tapahtui? [m
+[32m+[m[32m* Onko järjestelmä kunnossa?[m
+[32m+[m[32m* Mitä juuri tapahtui? [m
+[32m+[m[32m* Miksi ongelma syntyi? [m
+[32m+[m[32m* Miten ongelma voidaan korjata? [m
+ [m
+[31m-Miksi ongelma syntyi? [m
+ [m
+[31m-Miten ongelma voidaan korjata? [m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-Tyypillisesti tiedonkeruu muodostaa seuraavan kaltaisen ketjun:[m
+[32m+[m[32m### Tyypillisesti tiedonkeruu muodostaa seuraavan kaltaisen ketjun:[m
+ [m
+ Esimerkiksi kytkin voi havaita verkkorajapinnan menevän alas. Monitorointijärjestelmä saa tiedon, luo hälytyksen ja ilmoittaa asiasta ylläpitäjälle, joka aloittaa häiriönhallintaprosessin. SNMP perustuu manager-agent-malliin, jossa monitorointijärjestelmä kysyy tietoja laitteilta tai vastaanottaa niiden lähettämiä hälytyksiä (traps). [cisco.com], [learningne....cisco.com] [m
+ [m
+[31m-Miksi observability-dataa tarvitaan? [m
+[32m+[m[32m### Miksi observability-dataa tarvitaan? [m
+ [m
+ Ilman jatkuvaa tiedonkeruuta ylläpitäjä joutuu odottamaan käyttäjien vikailmoituksia. Tällöin toiminta on reaktiivista. Observability mahdollistaa proaktiivisen ylläpidon, jossa ongelmat havaitaan ennen kuin ne aiheuttavat merkittäviä käyttökatkoja. Observability perustuu tyypillisesti mittareihin (metrics), lokeihin (logs) ja jäljitystietoihin (traces), joiden avulla voidaan ymmärtää järjestelmän toimintaa ja ongelmien juurisyitä. [opentelemetry.io], [opentelemetry.io] [m
+ [m
+[31m- [m
+ [m
+[31m-Observability-datan tietolähteet [m
+[32m+[m[32m### Observability-datan tietolähteet [m
+ [m
+ Nykyaikaisessa ympäristössä monitorointijärjestelmä voi kerätä tietoa useista eri lähteistä. Jokaisella menetelmällä on omat vahvuutensa. [m
+ [m
+[31m-SNMP (Simple Network Management Protocol) [m
+[32m+[m[32m## SNMP (Simple Network Management Protocol) [m
+ [m
+ SNMP on verkonhallinnan perinteinen ja edelleen erittäin yleinen tiedonkeruumenetelmä. SNMP:n avulla voidaan lukea verkkolaitteiden ja palvelimien tilatietoja, kuten: [m
+ [m
+[31m-CPU-kuorma [m
+[31m-[m
+[31m-Muistin käyttö [m
+[31m-[m
+[31m-Rajapintojen liikennemäärät [m
+[31m-[m
+[31m-Virhelaskurit [m
+[31m-[m
+[31m-Laitteiden lämpötilat [m
+[32m+[m[32m* CPU-kuorma [m
+[32m+[m[32m* Muistin käyttö [m
+[32m+[m[32m* Rajapintojen liikennemäärät [m
+[32m+[m[32m* Virhelaskurit [m
+[32m+[m[32m* Laitteiden lämpötilat [m
+ [m
+ SNMP perustuu agenttiin, joka toimii valvottavassa laitteessa, sekä manageriin, joka kerää tiedot keskitetysti. Lisäksi laite voi lähettää itsenäisesti hälytyksiä eli trap-viestejä merkittävistä tapahtumista. [cisco.com], [learningne....cisco.com] [m
+ [m
+ Kurssin myöhemmissä harjoituksissa SNMP toimii keskeisenä tekniikkana, jonka avulla mittausdataa kerätään verkkolaitteilta monitorointijärjestelmään. [m
+ [m
+[31m- [m
+ [m
+[31m-Syslog [m
+[32m+[m[32m## Syslog [m
+ [m
+ SNMP kertoo yleensä laitteen nykytilan, mutta ei välttämättä selitä miksi jotain tapahtui. [m
+ [m
+[36m@@ -585,43 +512,31 @@[m [mTätä varten käytetään Syslogia. [m
+ [m
+ Syslog on standardoitu lokien siirtoprotokolla, jonka avulla verkkolaitteet, palvelimet ja sovellukset lähettävät tapahtumatietoja keskitetylle lokipalvelimelle. Syslog-viestejä voivat olla esimerkiksi: [m
+ [m
+[31m-käyttäjän kirjautuminen [m
+[31m-[m
+[31m-palvelun käynnistyminen [m
+[31m-[m
+[31m-rajapinnan katkeaminen [m
+[31m-[m
+[31m-virheilmoitus [m
+[31m-[m
+[31m-tietoturvatapahtuma [m
+[32m+[m[32m* käyttäjän kirjautuminen [m
+[32m+[m[32m* palvelun käynnistyminen [m
+[32m+[m[32m* rajapinnan katkeaminen [m
+[32m+[m[32m* virheilmoitus [m
+[32m+[m[32m* tietoturvatapahtuma [m
+ [m
+ Keskitetty lokien kerääminen mahdollistaa tapahtumien tutkimisen myöhemmin sekä häiriöiden juurisyiden analysoinnin. Syslog on standardoitu RFC 5424 -määrityksessä. [rfc-editor.org], [rfcinfo.com] [m
+ [m
+[31m- [m
+[31m-[m
+[31m-API [m
+[32m+[m[32m## API [m
+ [m
+ Monet modernit järjestelmät tarjoavat tietoja ohjelmointirajapintojen (API) kautta. [m
+ [m
+ Esimerkiksi: [m
+ [m
+[31m-Kubernetes [m
+[31m-[m
+[31m-VMware vSphere [m
+[31m-[m
+[31m-Proxmox VE [m
+[31m-[m
+[31m-Pilvipalvelut (Azure, AWS, Google Cloud) [m
+[31m-[m
+[31m-Verkkolaitteiden hallintajärjestelmät [m
+[32m+[m[32m* Kubernetes [m
+[32m+[m[32m* VMware vSphere [m
+[32m+[m[32m* Proxmox VE [m
+[32m+[m[32m* Pilvipalvelut (Azure, AWS, Google Cloud) [m
+[32m+[m[32m* Verkkolaitteiden hallintajärjestelmät [m
+ [m
+ Monitorointijärjestelmä voi hakea tietoja suoraan API-kyselyillä ilman SNMP:tä. API:t mahdollistavat usein huomattavasti laajemman tietomäärän keräämisen kuin perinteiset MIB-pohjaiset SNMP-kyselyt. [m
+ [m
+ API-pohjainen monitorointi on yhä tärkeämpää erityisesti pilvi- ja virtualisointiympäristöissä. [m
+ [m
+[31m- [m
+[31m-[m
+[31m-NetFlow [m
+[32m+[m[32m## NetFlow [m
+ [m
+ SNMP kertoo paljonko liikennettä rajapinnalla kulkee, mutta ei sitä, kuka liikennettä aiheuttaa. [m
+ [m
+[36m@@ -629,25 +544,18 @@[m [mTätä varten käytetään NetFlow'ta. [m
+ [m
+ NetFlow kerää verkkoliikenteestä virtoja (flows) ja tuottaa tietoa esimerkiksi: [m
+ [m
+[31m-lähdeosoitteesta [m
+[31m-[m
+[31m-kohdeosoitteesta [m
+[31m-[m
+[31m-käytetystä protokollasta [m
+[31m-[m
+[31m-käytetyistä porteista [m
+[31m-[m
+[31m-siirrettyjen tavujen määrästä [m
+[32m+[m[32m* lähdeosoitteesta [m
+[32m+[m[32m* kohdeosoitteesta [m
+[32m+[m[32m* käytetystä protokollasta [m
+[32m+[m[32m* käytetyistä porteista [m
+[32m+[m[32m* siirrettyjen tavujen määrästä [m
+ [m
+ NetFlow'n avulla voidaan tunnistaa: [m
+ [m
+[31m-suurimmat liikenteen aiheuttajat [m
+[31m-[m
+[31m-ruuhkien syyt [m
+[31m-[m
+[31m-epätavallinen liikenne [m
+[31m-[m
+[31m-tietoturvapoikkeamat [m
+[32m+[m[32m* suurimmat liikenteen aiheuttajat [m
+[32m+[m[32m* ruuhkien syyt [m
+[32m+[m[32m* epätavallinen liikenne [m
+[32m+[m[32m* tietoturvapoikkeamat [m
+ [m
+ Tyypillinen NetFlow-ratkaisu koostuu kolmesta osasta: [m
+ [m
+[36m@@ -655,754 +563,776 @@[m [mTyypillinen NetFlow-ratkaisu koostuu kolmesta osasta: [m
+ [m
+ NetFlow tarjoaa huomattavasti tarkemman näkymän verkkoliikenteeseen kuin pelkkä SNMP. [en.wikipedia.org], [kentik.com] [m
+ [m
+[31m- [m
+[31m-[m
+[31m-Prometheus[m
+[31m-[m
+[31m-Prometheus kerää aikasarjamuotoista mittausdataa palvelimilta ja sovelluksilta.[m
+[31m-[m
+[31m-Sitä käytetään erityisesti:[m
+[31m-[m
+[31m-Linux-palvelimien monitorointiin[m
+[31m-Konttiympäristöihin[m
+[31m-Pilviympäristöihin[m
+[31m-[m
+[31m-Prometheus mahdollistaa tehokkaat hälytykset ja pitkän aikavälin suorituskykyanalyysin.[m
+[31m-[m
+[31m-Grafana[m
+[31m-[m
+[31m-Grafana tarjoaa visualisointialustan mittausdatalle.[m
+[31m-[m
+[31m-Sen avulla voidaan rakentaa:[m
+[31m-[m
+[31m-Hallintapaneeleja (dashboards)[m
+[31m-Reaaliaikaisia näkymiä[m
+[31m-Hälytysjärjestelmiä[m
+[31m-Raportteja[m
+[31m-[m
+[31m-Grafanaa käytetään usein yhdessä Prometheuksen kanssa.[m
+[31m-[m
+[31m-Zabbix[m
+[31m-[m
+[31m-Zabbix on kokonaisvaltainen verkkovalvontaratkaisu.[m
+[31m-[m
+[31m-Se tarjoaa:[m
+[31m-[m
+[31m-Valvonnan[m
+[31m-Hälytykset[m
+[31m-Raportoinnin[m
+[31m-SNMP-tuen[m
+[31m-Agenttipohjaisen monitoroinnin[m
+[31m-[m
+[31m-Zabbix soveltuu hyvin organisaatioiden keskitettyyn valvontaan.[m
+[31m-[m
+[31m-Streaming Telemetry [m
+[31m-[m
+[31m-Verkkojen nopeuksien ja laitemäärien kasvaessa perinteinen SNMP-pollaus ei aina riitä. [m
+[31m-[m
+[31m-Streaming Telemetry on modernimpi lähestymistapa, jossa laitteet lähettävät tietoa jatkuvana virtana monitorointijärjestelmälle ilman erillisiä kyselyjä. Data voidaan lähettää jopa sekunnin murto-osien tarkkuudella. [blog.paessler.com], [riverbed.com], [cisco.com] [m
+[31m-[m
+[31m-Perinteinen SNMP toimii näin: [m
+[31m-[m
+[31m-1     Monitorointi ──► Kysyy tiedon [m
+[31m-[m
+[31m-2     Laite         ──► Vastaa [m
+[31m-[m
+[31m-Streaming Telemetry toimii näin: [m
+[31m-[m
+[31m-1     Laite ──► Lähettää tietoa jatkuvasti [m
+[31m-[m
+[31m-2             ──► Collector [m
+[31m-[m
+[31m-3             ──► Analytiikka [m
+[31m-[m
+[31m-Streaming Telemetryn etuja ovat: [m
+[31m-[m
+[31m-reaaliaikaisempi näkyvyys [m
+[31m-[m
+[31m-pienempi viive häiriöiden havaitsemisessa [m
+[31m-[m
+[31m-tarkempi mittausdata [m
+[31m-[m
+[31m-parempi skaalautuvuus suuriin ympäristöihin [m
+[31m-[m
+[31m-Tekniikka on yleistynyt erityisesti datakeskus- ja palveluntarjoajaverkoissa. [blog.paessler.com], [riverbed.com] [m
+[31m-[m
+[31m- [m
+[31m-[m
+[31m-Yhteenveto [m
+[31m-[m
+[31m-Observability perustuu siihen, että järjestelmistä kerätään jatkuvasti tietoa analysointia varten. Tieto voidaan kerätä useilla eri menetelmillä: [m
+[31m-[m
+[31m-Menetelmä [m
+[31m-[m
+[31m-	[m
+[31m-[m
+[31m-Käyttötarkoitus [m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-SNMP [m
+[31m-[m
+[31m-	[m
+[31m-[m
+[31m-Laitteiden tila- ja suorituskykytiedot [m
+[32m+[m[32m# NetFlow: Verkkoliikenteen virta-analyysi[m
+ [m
+[32m+[m[32m## Mikä on NetFlow?[m
+ [m
+[32m+[m[32mNetFlow on verkkoliikenteen analysointimenetelmä, jonka avulla verkkolaitteet muodostavat liikennevirroista (flows) yhteenvetotietoja analysointia varten.[m
+ [m
+[32m+[m[32mVerkkovirta koostuu paketeista, joilla on yhteisiä ominaisuuksia, kuten:[m
+ [m
+[31m-Syslog [m
+[32m+[m[32m- Lähde-IP-osoite[m
+[32m+[m[32m- Kohde-IP-osoite[m
+[32m+[m[32m- Lähdeportti[m
+[32m+[m[32m- Kohdeportti[m
+[32m+[m[32m- Käytetty protokolla (TCP, UDP, ICMP jne.)[m
+ [m
+[31m-	[m
+[32m+[m[32mToisin kuin paketinkaappausratkaisut (esim. Wireshark), NetFlow ei yleensä tallenna pakettien sisältöä, vaan ainoastaan liikennettä kuvaavia metatietoja. Tämän ansiosta suurten verkkoympäristöjen liikennettä voidaan analysoida tehokkaasti ilman valtavaa tallennustilan tarvetta.[m
+ [m
+[31m-Tapahtuma- ja virhelokit [m
+[32m+[m[32m---[m
+ [m
+[32m+[m[32m## NetFlow-järjestelmän kolme pääosaa[m
+ [m
+[32m+[m[32mTyypillinen NetFlow-arkkitehtuuri koostuu kolmesta komponentista:[m
+ [m
+[32m+[m[32m```text[m
+[32m+[m[32m+-------------------+[m
+[32m+[m[32m|      Exporter     |[m
+[32m+[m[32m| (Verkkolaite)     |[m
+[32m+[m[32m+---------+---------+[m
+[32m+[m[32m          |[m
+[32m+[m[32m          v[m
+[32m+[m[32m+-------------------+[m
+[32m+[m[32m|     Collector     |[m
+[32m+[m[32m|  (Tallennus)      |[m
+[32m+[m[32m+---------+---------+[m
+[32m+[m[32m          |[m
+[32m+[m[32m          v[m
+[32m+[m[32m+-------------------+[m
+[32m+[m[32m|     Analyzer      |[m
+[32m+[m[32m| (Raportointi)     |[m
+[32m+[m[32m+-------------------+[m
+[32m+[m[32m```[m
+ [m
+[31m-API [m
+[32m+[m[32m---[m
+ [m
+[31m-	[m
+[32m+[m[32m### 1. Exporter[m
+ [m
+[31m-Modernien järjestelmien hallinta- ja tilatiedot [m
+[32m+[m[32m#### Tehtävä[m
+ [m
+[32m+[m[32mExporter on yleensä reititin, kytkin tai palomuuri, jossa NetFlow-toiminto on käytössä.[m
+ [m
+[32m+[m[32mSen tehtävänä on:[m
+ [m
+[32m+[m[32m1. Tarkkailla verkkoliikennettä.[m
+[32m+[m[32m2. Ryhmitellä paketit virroiksi.[m
+[32m+[m[32m3. Laskea virran tunnusluvut.[m
+[32m+[m[32m4. Lähettää tiedot collectorille.[m
+ [m
+[31m-NetFlow [m
+[32m+[m[32m#### Kerättävät tiedot[m
+ [m
+[31m-	[m
+[32m+[m[32mTyypillinen virtatietue sisältää:[m
+ [m
+[31m-Verkkoliikenteen analysointi [m
+[32m+[m[32m- Lähde-IP[m
+[32m+[m[32m- Kohde-IP[m
+[32m+[m[32m- Lähdeportti[m
+[32m+[m[32m- Kohdeportti[m
+[32m+[m[32m- Protokolla[m
+[32m+[m[32m- Pakettien määrä[m
+[32m+[m[32m- Tavujen määrä[m
+[32m+[m[32m- Virran aloitus- ja lopetusaika[m
+ [m
+[32m+[m[32m#### Esimerkki[m
+ [m
+[32m+[m[32mKäyttäjä avaa selaimella verkkosivun HTTPS-yhteydellä.[m
+ [m
+[32m+[m[32mExporter tunnistaa esimerkiksi seuraavan virran:[m
+ [m
+[31m-Streaming Telemetry [m
+[32m+[m[32m| Kenttä | Arvo |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| Lähde-IP | 192.168.1.50 |[m
+[32m+[m[32m| Kohde-IP | 93.184.216.34 |[m
+[32m+[m[32m| Protokolla | TCP |[m
+[32m+[m[32m| Kohdeportti | 443 |[m
+[32m+[m[32m| Paketteja | 120 |[m
+[32m+[m[32m| Tavuja | 180 000 |[m
+ [m
+[31m-	[m
+[32m+[m[32m> Exporter ei tallenna varsinaista verkkosisältöä, vaan liikennettä kuvaavan yhteenvedon.[m
+ [m
+[31m-Reaaliaikainen mittausdata [m
+[32m+[m[32m---[m
+ [m
+[31m-Kurssin näkökulmasta SNMP muodostaa tärkeän perustan, sillä monet monitorointijärjestelmät hyödyntävät sitä edelleen verkkolaitteiden ja palvelimien valvontaan. Myöhemmissä opinnoissa opiskelija kohtaa myös muita tiedonkeruumenetelmiä, joita käytetään erityisesti moderneissa pilvi-, virtualisointi- ja datakeskusympäristöissä. [m
+[32m+[m[32m### 2. Collector[m
+ [m
+[31m-Häiriönhallinnan tavoitteena on havaita ongelmat nopeasti, tunnistaa niiden syyt ja palauttaa palvelut toimintakuntoon mahdollisimman tehokkaasti. FCAPS-mallissa häiriönhallinta muodostaa yhden keskeisistä verkonhallinnan osa-alueista yhdessä suorituskyvyn, konfiguraationhallinnan, käytön seurannan ja tietoturvan kanssa.[m
+[32m+[m[32m#### Tehtävä[m
+ [m
+[31m-Modernissa ympäristössä häiriönhallinta perustuu observability-ajatteluun, jossa metrikat, lokit ja jäljitystiedot muodostavat kokonaiskuvan järjestelmän toiminnasta. Työkalut kuten SNMP, Syslog, Prometheus, Grafana ja Zabbix mahdollistavat poikkeamien havaitsemisen, niiden analysoinnin sekä tehokkaan reagoinnin erilaisiin häiriötilanteisiin. Tämä osaaminen muodostaa perustan nykyaikaiselle verkkopalveluiden ja IT-infrastruktuurin ylläpidolle.[m
+[32m+[m[32mCollector vastaanottaa exportereiden lähettämät virratiedot.[m
+ [m
+[31m- [m
+[32m+[m[32mSen vastuulla on:[m
+ [m
+[31m-Lisälukemista [m
+[32m+[m[32m- Datan vastaanotto[m
+[32m+[m[32m- Datan tallennus[m
+[32m+[m[32m- Datan indeksointi[m
+[32m+[m[32m- Historiatietojen ylläpito[m
+ [m
+[31m-OpenTelemetry Observability Primer [m
+[31m-https://opentelemetry.io/docs/concepts/observability-primer/ [opentelemetry.io] [m
+[32m+[m[32mSuurissa verkoissa yksi collector voi vastaanottaa tietoja sadoilta tai tuhansilta verkkolaitteilta.[m
+ [m
+[31m-Cisco SNMP Overview [m
+[31m-https://www.cisco.com/c/en/us/td/docs/unified_computing/Intersight/IMM_SNMP_Monitoring/b_imm_snmp_monitoring_guide/m_overview_snmp_monitoring.pdf [cisco.com] [m
+[32m+[m[32m#### Miksi collector tarvitaan?[m
+ [m
+[31m-RFC 5424: The Syslog Protocol [m
+[31m-https://www.rfc-editor.org/info/rfc5424/ [rfc-editor.org] [m
+[32m+[m[32mJos jokainen verkkolaite säilyttäisi kaiken virratiedon itse, datan analysointi olisi vaikeaa. Collector keskittää tiedot yhteen paikkaan.[m
+ [m
+[31m-Kentik: What is NetFlow? [m
+[31m-https://www.kentik.com/kentipedia/what-is-netflow-overview/ [kentik.com] [m
+[32m+[m[32m#### Esimerkkejä collectoreista[m
+ [m
+[31m-Paessler: SNMP vs NetFlow vs Streaming Telemetry [m
+[31m-https://blog.paessler.com/network-streaming-telemetry-monitoring-in-real-time [blog.paessler.com] [m
+[32m+[m[32m- nProbe[m
+[32m+[m[32m- ElastiFlow[m
+[32m+[m[32m- Akvorado[m
+[32m+[m[32m- Kentik[m
+[32m+[m[32m- SolarWinds NetFlow Traffic Analyzer[m
+ [m
+[31m-5. SNMP verkonhallinnan työkaluna[m
+[32m+[m[32m---[m
+ [m
+[31m-Vasta tässä kohtaa siirryttäisiin SNMP:ään.[m
+[32m+[m[32m### 3. Analyzer[m
+ [m
+[31m-Opiskelija ymmärtää nyt:[m
+[32m+[m[32m#### Tehtävä[m
+ [m
+[31m-miksi tietoa kerätään[m
+[31m-mitä tietoa kerätään[m
+[31m-miksi SNMP on olemassa[m
+[31m-SNMP:n perusteet[m
+[32m+[m[32mAnalyzer lukee collectorin tallentamaa dataa ja muuttaa sen helposti ymmärrettävään muotoon.[m
+ [m
+[31m-Kuva:[m
+[32m+[m[32mAnalyzer voi tuottaa:[m
+ [m
+[32m+[m[32m- Raportteja[m
+[32m+[m[32m- Hälytyksiä[m
+[32m+[m[32m- Visualisointeja[m
+[32m+[m[32m- Tilastoja[m
+[32m+[m[32m- Trendejä[m
+ [m
+[32m+[m[32m#### Tyypillisiä kysymyksiä[m
+ [m
+[31m-Plain Text[m
+[32m+[m[32mAnalyzer auttaa vastaamaan esimerkiksi seuraaviin kysymyksiin:[m
+ [m
+[31m-1[m
+[31m-Manager[m
+[31m-2[m
+[31m-|[m
+[31m-3[m
+[31m-|[m
+[31m-4[m
+[31m-SNMP GET[m
+[31m-5[m
+[31m-|[m
+[31m-6[m
+[31m-v[m
+[31m-7[m
+[31m-Agent[m
+[31m-8[m
+[31m-|[m
+[31m-9[m
+[31m-v[m
+[31m-10[m
+[31m-MIB[m
+[31m-Näytä lisää rivejä[m
+[32m+[m[32m- Mitkä laitteet käyttävät eniten kaistaa?[m
+[32m+[m[32m- Mitä sovelluksia verkossa käytetään?[m
+[32m+[m[32m- Mikä aiheutti verkon ruuhkautumisen?[m
+[32m+[m[32m- Onko verkossa poikkeavaa liikennettä?[m
+[32m+[m[32m- Mihin ulkoisiin palveluihin liikennettä muodostetaan?[m
+ [m
+[31m-Käsitteet:[m
+[32m+[m[32m#### Esimerkki raportista[m
+ [m
+[31m-Manager[m
+[31m-Agent[m
+[31m-MIB[m
+[31m-OID[m
+[32m+[m[32m| Lähde-IP | Sovellus | Liikenne |[m
+[32m+[m[32m|-----------|-----------|-----------|[m
+[32m+[m[32m| 10.0.0.12 | YouTube | 45 GB |[m
+[32m+[m[32m| 10.0.0.20 | Microsoft Teams | 18 GB |[m
+[32m+[m[32m| 10.0.0.35 | OneDrive | 12 GB |[m
+ [m
+[31m-Nykyisestä materiaalista nämä kannattaa säilyttää. [TI00FF88-3...arn-Moodle][m
+[32m+[m[32mRaportin perusteella ylläpitäjä voi nopeasti tunnistaa verkon suurimmat kuormittajat.[m
+ [m
+[31m-6. SNMP:n käyttötavat[m
+[32m+[m[32m---[m
+ [m
+[31m-Opiskelijalle tärkein osuus Week02:n kannalta.[m
+[32m+[m[32m## Käyttökohteet[m
+ [m
+[31m-Pollaus[m
+[32m+[m[32m### Verkon vianmääritys[m
+ [m
+[31m-Manager kysyy tietoja.[m
+[32m+[m[32mNetFlow auttaa selvittämään:[m
+ [m
+[31m-Esimerkiksi:[m
+[31m-[m
+[31m-CPU[m
+[31m-RAM[m
+[31m-Interface status[m
+[32m+[m[32m- Mikä aiheuttaa ruuhkia[m
+[32m+[m[32m- Mistä liikenne tulee[m
+[32m+[m[32m- Mihin liikenne suuntautuu[m
+ [m
+[32m+[m[32m### Kapasiteetin suunnittelu[m
+ [m
+[31m-Plain Text[m
+[32m+[m[32mPitkän aikavälin mittaukset osoittavat:[m
+ [m
+[31m-1[m
+[31m-GET[m
+[31m-2[m
+[31m-GETNEXT[m
+[31m-3[m
+[31m-GETBULK[m
+[31m-Näytä lisää rivejä[m
+[31m-Trapit[m
+[32m+[m[32m- Kaistan käytön kasvun[m
+[32m+[m[32m- Kuormituspiikit[m
+[32m+[m[32m- Tarpeen verkkoyhteyksien laajentamiseen[m
+ [m
+[31m-Laite ilmoittaa itse tapahtumista.[m
+[31m-[m
+[31m-Esimerkiksi:[m
+[32m+[m[32m### Tietoturva[m
+ [m
+[31m-portti alas[m
+[31m-virtalähdevika[m
+[31m-korkea CPU[m
+[32m+[m[32mNetFlow:lla voidaan havaita:[m
+ [m
+[32m+[m[32m- DDoS-hyökkäyksiä[m
+[32m+[m[32m- Haittaohjelmien liikennettä[m
+[32m+[m[32m- Epätavallisia yhteyksiä[m
+[32m+[m[32m- Tietovuotoihin viittaavaa suurta ulospäin suuntautuvaa liikennettä[m
+ [m
+[31m-Plain Text[m
+[32m+[m[32m---[m
+ [m
+[31m-1[m
+[31m-TRAP[m
+[31m-2[m
+[31m-INFORM[m
+[31m-Näytä lisää rivejä[m
+[32m+[m[32m## Yhteenveto[m
+ [m
+[31m-Tämä liittyy hälytysjärjestelmiin.[m
+[32m+[m[32mNetFlow-järjestelmä koostuu kolmesta pääkomponentista:[m
+ [m
+[31m-7. SNMPv1, SNMPv2c ja SNMPv3[m
+[32m+[m[32m### Exporter[m
+ [m
+[31m-Nykyinen materiaali sisältää paljon historiaa. [TI00FF88-3...arn-Moodle][m
+[32m+[m[32m- Kerää liikennetiedot verkkolaitteelta.[m
+[32m+[m[32m- Muodostaa virrat (flows).[m
+[32m+[m[32m- Lähettää tiedot collectorille.[m
+ [m
+[31m-Ehdottaisin supistamaan sen yhteen taulukkoon:[m
+[32m+[m[32m### Collector[m
+ [m
+[31m-Versio	Turvallisuus[m
+[31m-SNMPv1	Ei suojausta[m
+[31m-SNMPv2c	Community String[m
+[31m-SNMPv3	Tunnistus ja salaus[m
+[32m+[m[32m- Vastaanottaa virratiedot.[m
+[32m+[m[32m- Tallentaa historian.[m
+[32m+[m[32m- Keskittää tiedot analysoitavaksi.[m
+ [m
+[31m-Johtopäätös:[m
+[32m+[m[32m### Analyzer[m
+ [m
+[31m-Uusissa ympäristöissä käytetään aina SNMPv3:a.[m
+[32m+[m[32m- Tuottaa raportit ja visualisoinnit.[m
+[32m+[m[32m- Tukee verkonhallintaa.[m
+[32m+[m[32m- Auttaa suorituskyvyn optimoinnissa.[m
+[32m+[m[32m- Tukee tietoturvapoikkeamien tunnistamista.[m
+ [m
+[31m-8. Kurssin kannalta tärkeimmät OID:t[m
+[32m+[m[32mNäiden kolmen komponentin yhteistyö mahdollistaa tehokkaan verkkoliikenteen seurannan, vianmäärityksen ja tietoturvan valvonnan ilman, että koko verkkoliikenteen sisältöä tarvitsee tallentaa.[m
+[32m+[m[32m---[m
+ [m
+[31m-Tämä olisi erinomainen uusi osio.[m
+[32m+[m[32m### Lisälukemista[m
+ [m
+[31m-Week02:ssa opiskelija käyttää käytännössä juuri näitä.[m
+[32m+[m[32m- [RFC 7011: IP Flow Information Export (IPFIX)](https://datatracker.ietf.org/doc/html/cisco.com/c/en/us/products/ios-nx-os-software/ios-netflow/index.html)[m
+[32m+[m[32m- [Kentik: What is NetFlow?](https://www.kentik.com/kentipedia/what-is-netflow-overview/)[m
+[32m+[m[32m- [Cloudflare Learning Center: Network Flow Monitoring](https://www.cloudflare.com/learning/network-layer/what-is-network-monitoring/)[m
+ [m
+[31m-Järjestelmä[m
+[32m+[m[32m# Prometheus[m
+ [m
+[32m+[m[32mPrometheus kerää aikasarjamuotoista mittausdataa palvelimilta ja sovelluksilta.[m
+ [m
+[31m-Plain Text[m
+[31m-[m
+[31m-1[m
+[31m-sysName[m
+[31m-2[m
+[31m-sysLocation[m
+[31m-3[m
+[31m-sysContact[m
+[31m-4[m
+[31m-sysUptime[m
+[31m-Näytä lisää rivejä[m
+[31m-Verkkoliitännät[m
+[31m-[m
+[31m-[m
+[31m-Plain Text[m
+[31m-[m
+[31m-1[m
+[31m-ifDescr[m
+[31m-2[m
+[31m-ifAdminStatus[m
+[31m-3[m
+[31m-ifOperStatus[m
+[31m-Näytä lisää rivejä[m
+[31m-Laskurit[m
+[31m-[m
+[31m-[m
+[31m-Plain Text[m
+[31m-[m
+[31m-1[m
+[31m-ifInOctets[m
+[31m-2[m
+[31m-ifOutOctets[m
+[31m-Näytä lisää rivejä[m
+[31m-[m
+[31m-Näiden avulla opiskelija näkee konkreettisesti mitä SNMP:llä voidaan kerätä.[m
+[31m-[m
+[31m-9. SNMP Linux-palvelimella[m
+[31m-[m
+[31m-Tämä loisi suoran yhteyden tehtävään.[m
+[31m-[m
+[31m-Käsiteltävät asiat:[m
+[31m-[m
+[31m-snmpd[m
+[31m-agentti[m
+[31m-community[m
+[31m-SNMPv3 user[m
+[31m-[m
+[31m-Esimerkkikaavio:[m
+[32m+[m[32mSitä käytetään erityisesti:[m
+ [m
+[32m+[m[32mLinux-palvelimien monitorointiin[m
+[32m+[m[32mKonttiympäristöihin[m
+[32m+[m[32mPilviympäristöihin[m
+ [m
+[32m+[m[32mPrometheus mahdollistaa tehokkaat hälytykset ja pitkän aikavälin suorituskykyanalyysin.[m
+ [m
+[31m-Plain Text[m
+[32m+[m[32m# Grafana[m
+ [m
+[31m-1[m
+[31m-srv-monitor[m
+[31m-2[m
+[31m-← SNMP →[m
+[31m-3[m
+[31m-srv-client1[m
+[31m-4[m
+[31m-srv-client2[m
+[31m-5[m
+[31m-srv-client3[m
+[31m-6[m
+[31m-``[m
+[31m-Näytä lisää rivejä[m
+[32m+[m[32mGrafana tarjoaa visualisointialustan mittausdatalle.[m
+ [m
+[31m-Tämä vastaa suoraan viikon harjoitusta.[m
+[32m+[m[32mSen avulla voidaan rakentaa:[m
+ [m
+[31m-10. SNMP osana verkonhallinnan kokonaisuutta[m
+[32m+[m[32mHallintapaneeleja (dashboards)[m
+[32m+[m[32mReaaliaikaisia näkymiä[m
+[32m+[m[32mHälytysjärjestelmiä[m
+[32m+[m[32mRaportteja[m
+ [m
+[31m-Loppuyhteenveto.[m
+[32m+[m[32mGrafanaa käytetään usein yhdessä Prometheuksen kanssa.[m
+ [m
+[32m+[m[32m# Zabbix[m
+ [m
+[32m+[m[32mZabbix on kokonaisvaltainen verkkovalvontaratkaisu.[m
+ [m
+[31m-Plain Text[m
+[32m+[m[32mSe tarjoaa:[m
+ [m
+[31m-1[m
+[31m-Dokumentaatio[m
+[31m-2[m
+[31m-↓[m
+[31m-3[m
+[31m-SNMP[m
+[31m-4[m
+[31m-↓[m
+[31m-5[m
+[31m-Monitorointi[m
+[31m-6[m
+[31m-↓[m
+[31m-7[m
+[32m+[m[32mValvonnan[m
+ Hälytykset[m
+[31m-8[m
+[31m-↓[m
+[31m-9[m
+[31m-Häiriönhallinta[m
+[31m-10[m
+[31m-↓[m
+[31m-11[m
+[31m-Kehittäminen[m
+[31m-Näytä lisää rivejä[m
+[31m-[m
+[31m-SNMP:n käyttötavat [m
+[31m-[m
+[31m-SNMP:tä käytetään kahdella pääasiallisella tavalla: [m
+[31m-[m
+[31m-Pollaus (Polling) [m
+[31m-[m
+[31m-Trapit (Notifications) [m
+[31m-[m
+[31m-Pollaus [m
+[31m-[m
+[31m-Pollauksessa monitorointijärjestelmä kysyy tietoja määräajoin. [m
+[32m+[m[32mRaportoinnin[m
+[32m+[m[32mSNMP-tuen[m
+[32m+[m[32mAgenttipohjaisen monitoroinnin[m
+ [m
+[31m-1     Manager ----> Kysely [m
+[32m+[m[32mZabbix soveltuu hyvin organisaatioiden keskitettyyn valvontaan.[m
+ [m
+[31m-2     Manager <---- Vastaus [m
+[32m+[m[32mStreaming Telemetry [m
+ [m
+[31m-Esimerkkejä kysyttävistä tiedoista: [m
+[32m+[m[32mVerkkojen nopeuksien ja laitemäärien kasvaessa perinteinen SNMP-pollaus ei aina riitä. [m
+ [m
+[31m-CPU-kuormitus [m
+[32m+[m[32mStreaming Telemetry on modernimpi lähestymistapa, jossa laitteet lähettävät tietoa jatkuvana virtana monitorointijärjestelmälle ilman erillisiä kyselyjä. Data voidaan lähettää jopa sekunnin murto-osien tarkkuudella. [blog.paessler.com], [riverbed.com], [cisco.com] [m
+ [m
+[31m-RAM-muistin käyttö [m
+[32m+[m[32mPerinteinen SNMP toimii näin: [m
+ [m
+[31m-levytila [m
+[32m+[m[32m1     Monitorointi ──► Kysyy tiedon [m
+ [m
+[31m-verkkoliitännän tila [m
+[32m+[m[32m2     Laite         ──► Vastaa [m
+ [m
+[31m-käyttöaika [m
+[32m+[m[32mStreaming Telemetry toimii näin: [m
+ [m
+[31m-SNMP tukee useita kyselytyyppejä. [m
+[32m+[m[32m1     Laite ──► Lähettää tietoa jatkuvasti [m
+ [m
+[31m-GET [m
+[32m+[m[32m2             ──► Collector [m
+ [m
+[31m-Hakee yhden tietyn OID:n arvon. [m
+[32m+[m[32m3             ──► Analytiikka [m
+ [m
+[31m-1     GET sysName.0 [m
+[32m+[m[32mStreaming Telemetryn etuja ovat: [m
+ [m
+[31m-GETNEXT [m
+[32m+[m[32mreaaliaikaisempi näkyvyys [m
+ [m
+[31m-Hakee seuraavan objektin MIB-puusta. [m
+[32m+[m[32mpienempi viive häiriöiden havaitsemisessa [m
+ [m
+[31m-Tätä käytetään usein tiedon selaamiseen. [m
+[32m+[m[32mtarkempi mittausdata [m
+ [m
+[31m-GETBULK [m
+[32m+[m[32mparempi skaalautuvuus suuriin ympäristöihin [m
+ [m
+[31m-Hakee useita objekteja yhdellä kyselyllä. [m
+[32m+[m[32mTekniikka on yleistynyt erityisesti datakeskus- ja palveluntarjoajaverkoissa. [blog.paessler.com], [riverbed.com] [m
+ [m
+[31m-Tämä vähentää verkkoliikennettä ja nopeuttaa tiedonkeruuta erityisesti suurissa ympäristöissä. [m
+[32m+[m[32m [m
+ [m
+[31m-Pollaus muodostaa käytännössä lähes kaiken suorituskyvyn monitoroinnin perustan. Monitorointijärjestelmä lukee säännöllisesti laitteiden tietoja ja tallentaa ne aikasarjatietokantaan raportointia ja analysointia varten. [cisco.com], [learningne....cisco.com] [m
+[32m+[m[32m# Yhteenveto Observability[m
+ [m
+[31m-Trapit [m
+[32m+[m[32mObservability perustuu siihen, että järjestelmistä kerätään jatkuvasti tietoa analysointia varten. Tieto voidaan kerätä useilla eri menetelmillä: [m
+ [m
+[31m-Kaikkia ongelmia ei ole tehokasta havaita pelkällä pollauksella. [m
+[32m+[m[32m| Menetelmä | Käyttötarkoitus |[m
+[32m+[m[32m|---------------|-------------------|[m
+[32m+[m[32m| SNMP | Laitteiden tila- ja suorituskykytiedot |[m
+[32m+[m[32m| Syslog | Tapahtuma- ja virhelokit |[m
+[32m+[m[32m| API | Modernien järjestelmien hallinta- ja tilatiedot |[m
+[32m+[m[32m| NetFlow | Verkkoliikenteen analysointi |[m
+[32m+[m[32m| Streaming Telemetry | Reaaliaikainen mittausdata |[m
+ [m
+[31m-Tällöin käytetään trap-viestejä. [m
+ [m
+[31m-Trapissa laite lähettää itse ilmoituksen monitorointijärjestelmälle ilman erillistä kyselyä. [m
+[32m+[m[32mKurssin näkökulmasta SNMP muodostaa tärkeän perustan, sillä monet monitorointijärjestelmät hyödyntävät sitä edelleen verkkolaitteiden ja palvelimien valvontaan. Myöhemmissä opinnoissa opiskelija kohtaa myös muita tiedonkeruumenetelmiä, joita käytetään erityisesti moderneissa pilvi-, virtualisointi- ja datakeskusympäristöissä. [m
+ [m
+[31m-1     Laite ------> TRAP ------> Monitorointi [m
+[32m+[m[32mHäiriönhallinnan tavoitteena on havaita ongelmat nopeasti, tunnistaa niiden syyt ja palauttaa palvelut toimintakuntoon mahdollisimman tehokkaasti. FCAPS-mallissa häiriönhallinta muodostaa yhden keskeisistä verkonhallinnan osa-alueista yhdessä suorituskyvyn, konfiguraationhallinnan, käytön seurannan ja tietoturvan kanssa.[m
+ [m
+[31m-Esimerkkejä tilanteista: [m
+[32m+[m[32mModernissa ympäristössä häiriönhallinta perustuu observability-ajatteluun, jossa metrikat, lokit ja jäljitystiedot muodostavat kokonaiskuvan järjestelmän toiminnasta. Työkalut kuten SNMP, Syslog, Prometheus, Grafana ja Zabbix mahdollistavat poikkeamien havaitsemisen, niiden analysoinnin sekä tehokkaan reagoinnin erilaisiin häiriötilanteisiin. Tämä osaaminen muodostaa perustan nykyaikaiselle verkkopalveluiden ja IT-infrastruktuurin ylläpidolle.[m
+ [m
+[31m-verkkoliitäntä menee alas [m
+[32m+[m[32m [m
+ [m
+[31m-virtalähde vikaantuu [m
+[32m+[m[32m## Lisälukemista [m
+ [m
+[31m-lämpötila nousee liian korkeaksi [m
+[32m+[m[32mOpenTelemetry Observability Primer [m
+[32m+[m[32mhttps://opentelemetry.io/docs/concepts/observability-primer/ [opentelemetry.io] [m
+ [m
+[31m-CPU-kuorma ylittää raja-arvon [m
+[32m+[m[32mCisco SNMP Overview [m
+[32m+[m[32mhttps://www.cisco.com/c/en/us/td/docs/unified_computing/Intersight/IMM_SNMP_Monitoring/b_imm_snmp_monitoring_guide/m_overview_snmp_monitoring.pdf [cisco.com] [m
+ [m
+[31m-TRAP [m
+[32m+[m[32mRFC 5424: The Syslog Protocol [m
+[32m+[m[32mhttps://www.rfc-editor.org/info/rfc5424/ [rfc-editor.org] [m
+ [m
+[31m-Kevyt ilmoitusviesti. [m
+[32m+[m[32mKentik: What is NetFlow? [m
+[32m+[m[32mhttps://www.kentik.com/kentipedia/what-is-netflow-overview/ [kentik.com] [m
+ [m
+[31m-Laite lähettää tapahtuman eikä odota kuittausta. [m
+[32m+[m[32mPaessler: SNMP vs NetFlow vs Streaming Telemetry [m
+[32m+[m[32mhttps://blog.paessler.com/network-streaming-telemetry-monitoring-in-real-time [blog.paessler.com] [m
+ [m
+[31m-INFORM [m
+ [m
+[31m-Trapin kehittyneempi versio. [m
+[32m+[m[32m## SNMP Linux-palvelimella [m
+ [m
+[31m-Vastaanottaja kuittaa viestin vastaanotetuksi, jolloin lähettäjä tietää ilmoituksen päätyneen perille. [cisco.com] [m
+[32m+[m[32mLinux-palvelimessa SNMP toteutetaan tavallisesti Net-SNMP-ohjelmistolla.[m
+ [m
+[31m-Trapit ovat tärkeä osa hälytysjärjestelmiä, koska ne mahdollistavat nopean reagoinnin ongelmatilanteisiin. [m
+[32m+[m[32mKeskeinen palvelu on:[m
+ [m
+[31m- [m
+[32m+[m[32m1     snmpd[m
+ [m
+[31m-SNMPv1, SNMPv2c ja SNMPv3 [m
+[32m+[m[32mPalvelu toimii SNMP-agenttina ja vastaa managerin kyselyihin.[m
+ [m
+[31m-SNMP:stä on olemassa useita versioita. [m
+[32m+[m[32mTyypillinen ympäristö[m
+ [m
+[31m-Versio [m
+[32m+[m[32m```text[m
+[32m+[m[32m     SNMP Manager[m
+[32m+[m[32m     srv-monitor[m
+[32m+[m[32m          |[m
+[32m+[m[32m  ---------------------------[m
+[32m+[m[32m  |            |            |[m
+[32m+[m[32m  |            |            |[m
+[32m+[m[32msrv-client1  srv-client2  srv-client3[m
+[32m+[m[32m  |            |            |[m
+[32m+[m[32m snmpd        snmpd        snmpd[m
+[32m+[m[32m```[m
+ [m
+[31m-	[m
+[32m+[m[32mMonitorointipalvelin kerää tietoja useilta palvelimilta samanaikaisesti.[m
+ [m
+[31m-Turvallisuus [m
+[32m+[m[32m### Community[m
+ [m
+[32m+[m[32mSNMPv1- ja SNMPv2c-ympäristöissä käytetään community string -arvoja.[m
+ [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[32m+[m[32m1     public[m
+ [m
+[31m-SNMPv1 [m
+[32m+[m[32mCommunity toimii eräänlaisena "salasanana", mutta sitä ei salata verkkoliikenteessä.[m
+ [m
+[31m-	[m
+[32m+[m[32mTästä syystä sitä ei suositella tuotantoympäristöihin.[m
+ [m
+[31m-Ei suojausta [m
+[32m+[m[32m### SNMPv3-käyttäjä[m
+ [m
+[32m+[m[32mSNMPv3 käyttää käyttäjätunnuksia ja tarvittaessa salausta.[m
+ [m
+[32m+[m[32mEsimerkiksi:[m
+ [m
+[32m+[m[32m1     monitor[m
+ [m
+[31m-SNMPv2c [m
+[32m+[m[32mSNMPv3 mahdollistaa turvallisen monitoroinnin myös verkoissa, joissa liikenteen luottamuksellisuus on tärkeää. [cisco.com], [learningne....cisco.com][m
+ [m
+[31m-	[m
+[32m+[m[32mTämän kurssin Week02-harjoituksessa opiskelija asentaa SNMP-agentin Linux-palvelimelle, määrittää monitorointikäyttäjän ja testaa tiedonkeruuta käytännössä.[m
+ [m
+[31m-Community String [m
+[32m+[m[32m## SNMP osana verkonhallinnan kokonaisuutta[m
+ [m
+[32m+[m[32mSNMP ei ole irrallinen teknologia, vaan osa laajempaa verkonhallinnan kokonaisuutta.[m
+ [m
+[32m+[m[32m1     Dokumentaatio[m
+ [m
+[32m+[m[32m2           ↓[m
+ [m
+[31m-SNMPv3 [m
+[32m+[m[32m3          SNMP[m
+ [m
+[31m-	[m
+[32m+[m[32m4           ↓[m
+ [m
+[31m-Tunnistus ja salaus [m
+[32m+[m[32m5      Monitorointi[m
+ [m
+[31m-SNMPv1 [m
+[32m+[m[32m6           ↓[m
+ [m
+[31m-Ensimmäinen laajasti käytetty versio. [m
+[32m+[m[32m7       Hälytykset[m
+ [m
+[31m-Ei tarjoa varsinaista tietoturvaa. [m
+[32m+[m[32m8           ↓[m
+ [m
+[31m-SNMPv2c [m
+[32m+[m[32m9      Häiriönhallinta[m
+ [m
+[31m-Lisäsi suorituskykyparannuksia ja uusia komentoja. [m
+[32m+[m[32m10           ↓[m
+ [m
+[31m-Tunnistautuminen perustuu community string -arvoihin. [m
+[32m+[m[32m11       Kehittäminen[m
+ [m
+[31m-Yleisiä esimerkkejä: [m
+[32m+[m[32mVerkonhallinta alkaa ympäristön tuntemisesta ja dokumentoinnista. Dokumentoiduista laitteista voidaan kerätä tietoa SNMP:n avulla. Kerätty tieto mahdollistaa monitoroinnin, jonka perusteella syntyy hälytyksiä. Hälytysten avulla havaitaan häiriöt, jotka analysoidaan ja korjataan. Lopuksi kerättyä tietoa käytetään ympäristön kehittämiseen, kapasiteetin suunnitteluun ja automaation rakentamiseen.[m
+ [m
+[31m-1     public [m
+[32m+[m[32m# SNMP:n perusteet[m
+ [m
+[31m-2     private [m
+[32m+[m[32mSNMP (Simple Network Management Protocol) on verkonhallintaprotokolla, jonka avulla voidaan kerätä tietoa verkkolaitteista, palvelimista ja muista verkkoon liitetyistä järjestelmistä.[m
+ [m
+[31m-Tietoliikennettä ei kuitenkaan salata. [m
+[32m+[m[32mSNMP:n avulla voidaan esimerkiksi selvittää:[m
+ [m
+[31m-SNMPv3 [m
+[32m+[m[32m- laitteen nimi[m
+[32m+[m[32m- käyttöjärjestelmä[m
+[32m+[m[32m- käyttöaika (uptime)[m
+[32m+[m[32m- prosessorin kuormitus[m
+[32m+[m[32m- muistin käyttö[m
+[32m+[m[32m- verkkoliitäntöjen tila[m
+[32m+[m[32m- verkkoliikenteen määrä[m
+ [m
+[31m-Nykyinen suositeltu versio. [m
+[32m+[m[32mSNMP on yksi yleisimmistä verkkovalvonnan tiedonkeruumenetelmistä, ja monet monitorointijärjestelmät hyödyntävät sitä edelleen.[m
+ [m
+[31m-Tarjoaa: [m
+[32m+[m[32m---[m
+ [m
+[31m-käyttäjätunnistuksen [m
+[32m+[m[32m# SNMP:n toimintamalli[m
+ [m
+[31m-viestien eheyden tarkistuksen [m
+[32m+[m[32mSNMP perustuu manager-agent-malliin.[m
+ [m
+[31m-salauksen [m
+[32m+[m[32m```text[m
+[32m+[m[32m             SNMP GET[m
+[32m+[m[32mManager -----------------> Agent[m
+[32m+[m[32m             Vastaus[m
+[32m+[m[32mManager <----------------- Agent[m
+ [m
+[31m-SNMPv3 on tarkoitettu nykyisiin tuotantoympäristöihin ja tarjoaa merkittävästi paremman tietoturvan kuin aiemmat versiot. [cisco.com], [learningne....cisco.com] [m
+[32m+[m[32m                 |[m
+[32m+[m[32m                 v[m
+[32m+[m[32m                MIB[m
+[32m+[m[32m```[m
+ [m
+[31m-Käytännön suositus: uusissa ympäristöissä käytetään aina SNMPv3:a. [m
+[32m+[m[32m## Manager[m
+ [m
+[31m- [m
+[32m+[m[32mManager on järjestelmä, joka kerää tietoa.[m
+ [m
+[31m- Kurssin kannalta tärkeimmät OID:t [m
+[32m+[m[32mEsimerkkejä:[m
+ [m
+[31m-SNMP sisältää tuhansia objekteja, mutta alkuvaiheessa riittää muutaman keskeisen objektin hallitseminen. [m
+[32m+[m[32m- Zabbix[m
+[32m+[m[32m- LibreNMS[m
+[32m+[m[32m- PRTG[m
+[32m+[m[32m- Observium[m
+[32m+[m[32m- komentorivityökalut (snmpget, snmpwalk)[m
+ [m
+[31m-Järjestelmätiedot [m
+[32m+[m[32mManager lähettää kyselyitä valvottaville laitteille.[m
+ [m
+[31m-Objekti [m
+[32m+[m[32m## Agent[m
+ [m
+[31m-	[m
+[32m+[m[32mAgentti toimii valvottavassa laitteessa.[m
+ [m
+[31m-Tarkoitus [m
+[32m+[m[32mEsimerkkejä:[m
+ [m
+[32m+[m[32m- Linux-palvelin[m
+[32m+[m[32m- reititin[m
+[32m+[m[32m- kytkin[m
+[32m+[m[32m- palomuuri[m
+ [m
+[32m+[m[32mLinuxissa yleinen SNMP-agentti on:[m
+ [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpd[m
+[32m+[m[32m```[m
+ [m
+[31m-sysName [m
+[32m+[m[32mAgentti vastaa managerin lähettämiin kyselyihin.[m
+ [m
+[31m-	[m
+[32m+[m[32m---[m
+ [m
+[31m-Laitteen nimi [m
+[32m+[m[32m# MIB ja OID[m
+ [m
+[32m+[m[32mSNMP:n keräämät tiedot sijaitsevat MIB-tietokannassa (Management Information Base).[m
+ [m
+[32m+[m[32mMIB voidaan ajatella puumaisena tietorakenteena.[m
+ [m
+[32m+[m[32m```text[m
+[32m+[m[32miso(1)[m
+[32m+[m[32m└── org(3)[m
+[32m+[m[32m    └── dod(6)[m
+[32m+[m[32m        └── internet(1)[m
+[32m+[m[32m            └── mgmt(2)[m
+[32m+[m[32m                └── mib-2(1)[m
+[32m+[m[32m                    ├── system(1)[m
+[32m+[m[32m                    └── interfaces(2)[m
+[32m+[m[32m```[m
+ [m
+[31m-sysLocation [m
+[32m+[m[32mJokaisella objektilla on yksilöllinen tunniste, jota kutsutaan OID:ksi (Object Identifier).[m
+ [m
+[31m-	[m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-Sijainti [m
+[32m+[m[32m```text[m
+[32m+[m[32msysName.0[m
+ [m
+[32m+[m[32mOID:[m
+[32m+[m[32m1.3.6.1.2.1.1.5.0[m
+[32m+[m[32m```[m
+ [m
+[32m+[m[32mSama objekti voidaan kirjoittaa joko nimellä tai numeromuodossa.[m
+ [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 sysName.0[m
+[32m+[m[32m```[m
+ [m
+[31m-sysContact [m
+[32m+[m[32mvastaa käytännössä:[m
+ [m
+[31m-	[m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 1.3.6.1.2.1.1.5.0[m
+[32m+[m[32m```[m
+ [m
+[31m-Yhteyshenkilö [m
+[32m+[m[32mUseimmissa tilanteissa nimimuoto on helpompi käyttää.[m
+ [m
+[32m+[m[32m---[m
+ [m
+[32m+[m[32m# SNMP-portit[m
+ [m
+[32m+[m[32mSNMP käyttää UDP-protokollaa.[m
+ [m
+[31m-sysUpTime [m
+[32m+[m[32m| Portti | Käyttötarkoitus |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| UDP 161 | SNMP-kyselyt |[m
+[32m+[m[32m| UDP 162 | Trap-viestit |[m
+ [m
+[31m-	[m
+[32m+[m[32mTyypillisesti monitorointijärjestelmä lähettää kyselyt porttiin 161.[m
+ [m
+[31m-Käyttöaika [m
+[32m+[m[32m---[m
+ [m
+[31m-Näiden avulla voidaan tunnistaa valvottava laite ja tarkistaa sen perustiedot. [m
+[32m+[m[32m# SNMP-kyselyt[m
+ [m
+[31m-Verkkoliitännät [m
+[32m+[m[32mSNMP tukee useita kyselytyyppejä.[m
+ [m
+[31m-Objekti [m
+[32m+[m[32m## GET[m
+ [m
+[31m-	[m
+[32m+[m[32mHakee yhden tietyn objektin arvon.[m
+ [m
+[31m-Tarkoitus [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 sysName.0[m
+[32m+[m[32m```[m
+ [m
+[32m+[m[32mPalauttaa laitteen nimen.[m
+ [m
+[32m+[m[32m---[m
+ [m
+[31m-ifDescr [m
+[32m+[m[32m## GETNEXT[m
+ [m
+[31m-	[m
+[32m+[m[32mHakee seuraavan objektin MIB-puusta.[m
+ [m
+[31m-Rajapinnan nimi [m
+[32m+[m[32mTätä käytetään tiedon selaamiseen ohjelmallisesti.[m
+ [m
+[32m+[m[32m---[m
+ [m
+[32m+[m[32m## GETBULK[m
+ [m
+[32m+[m[32mHakee useita objekteja yhdellä kyselyllä.[m
+ [m
+[31m-ifAdminStatus [m
+[32m+[m[32mGETBULK vähentää verkkoliikennettä erityisesti suurissa ympäristöissä.[m
+ [m
+[31m-	[m
+[32m+[m[32m---[m
+ [m
+[31m-Hallinnollinen tila [m
+[32m+[m[32m# Net-SNMP-komentorivityökalut[m
+ [m
+[32m+[m[32mKurssin harjoituksissa käytetään Net-SNMP-työkaluja.[m
+ [m
+[32m+[m[32m## snmpget[m
+ [m
+[32m+[m[32mHakee yhden tietyn OID:n.[m
+ [m
+[31m-ifOperStatus [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-	[m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 sysDescr.0[m
+[32m+[m[32m```[m
+ [m
+[31m-Todellinen toimintatila [m
+[32m+[m[32m---[m
+ [m
+[31m-Näillä voidaan selvittää esimerkiksi onko verkkoliitäntä poistettu käytöstä vai onko yhteydessä todellinen vikatilanne. [m
+[32m+[m[32m## snmpwalk[m
+ [m
+[31m-Liikennelaskurit [m
+[32m+[m[32mKäy läpi kokonaisen OID-haaran.[m
+ [m
+[31m-Objekti [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-	[m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpwalk -v2c -c public web1 system[m
+[32m+[m[32m```[m
+ [m
+[31m-Tarkoitus [m
+[32m+[m[32mPalauttaa useita järjestelmätietoja yhdellä komennolla.[m
+ [m
+[32m+[m[32m---[m
+ [m
+[32m+[m[32m## snmptranslate[m
+ [m
+[32m+[m[32mMuuntaa objektin nimen OID-muotoon tai päinvastoin.[m
+ [m
+[31m-ifInOctets [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-	[m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmptranslate sysName.0[m
+[32m+[m[32m```[m
+ [m
+[31m-Vastaanotetut tavut [m
+[32m+[m[32m---[m
+ [m
+[32m+[m[32m# SNMP-versiot[m
+ [m
+[32m+[m[32mSNMP:stä on käytössä useita versioita.[m
+ [m
+[32m+[m[32m| Versio | Turvallisuus |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| SNMPv1 | Ei suojausta |[m
+[32m+[m[32m| SNMPv2c | Community String |[m
+[32m+[m[32m| SNMPv3 | Tunnistus ja salaus |[m
+ [m
+[31m-ifOutOctets [m
+[32m+[m[32m## SNMPv2c[m
+ [m
+[31m-	[m
+[32m+[m[32mKurssiharjoituksissa käytetään SNMPv2c-versiota.[m
+ [m
+[31m-Lähetetyt tavut [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-Näiden avulla voidaan laskea: [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 sysName.0[m
+[32m+[m[32m```[m
+ [m
+[31m-kaistan käyttö [m
+[32m+[m[32mMissä:[m
+ [m
+[31m-liikennemäärät [m
+[32m+[m[32m```text[m
+[32m+[m[32m-v2c[m
+[32m+[m[32m```[m
+ [m
+[31m-kuormitus [m
+[32m+[m[32mmäärittää version.[m
+ [m
+[31m-liikennetrendit [m
+[32m+[m[32m```text[m
+[32m+[m[32m-c public[m
+[32m+[m[32m```[m
+ [m
+[31m-Suuri osa monitorointijärjestelmien verkkografiikoista perustuu juuri näihin laskureihin. [m
+[32m+[m[32mmäärittää community stringin.[m
+ [m
+[31m- [m
+[32m+[m[32mCommunity toimii eräänlaisena tunnisteena, mutta sitä ei salata verkkoliikenteessä.[m
+ [m
+[31m-SNMP Linux-palvelimella [m
+[32m+[m[32m---[m
+ [m
+[31m-Linux-palvelimessa SNMP toteutetaan tavallisesti Net-SNMP-ohjelmistolla. [m
+[32m+[m[32m## SNMPv3[m
+ [m
+[31m-Keskeinen palvelu on: [m
+[32m+[m[32mSNMPv3 tukee:[m
+ [m
+[31m-1     snmpd [m
+[32m+[m[32m- käyttäjätunnistusta[m
+[32m+[m[32m- viestien eheyden tarkistusta[m
+[32m+[m[32m- salausta[m
+ [m
+[31m-Palvelu toimii SNMP-agenttina ja vastaa managerin kyselyihin. [m
+[32m+[m[32mSNMPv3 on nykyinen suositeltu vaihtoehto tuotantoympäristöihin.[m
+ [m
+[31m-Tyypillinen ympäristö [m
+[32m+[m[32mKurssilla käytetään SNMPv2c:tä yksinkertaisuuden vuoksi.[m
+ [m
+[31m-1                 SNMP Manager [m
+[32m+[m[32m---[m
+ [m
+[31m-2                   srv-monitor [m
+[32m+[m[32m# Kurssin tärkeimmät OID:t[m
+ [m
+[31m-3                        | [m
+[32m+[m[32mSeuraavat objektit ovat Week02-harjoituksen kannalta tärkeimpiä.[m
+ [m
+[31m-4           --------------------------- [m
+[32m+[m[32m## Järjestelmätiedot[m
+ [m
+[31m-5           |            |            | [m
+[32m+[m[32m| OID | Tarkoitus |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| sysName | Laitteen nimi |[m
+[32m+[m[32m| sysDescr | Järjestelmän kuvaus |[m
+[32m+[m[32m| sysLocation | Laitteen sijainti |[m
+[32m+[m[32m| sysContact | Yhteyshenkilö |[m
+[32m+[m[32m| sysUpTime | Käyttöaika |[m
+ [m
+[31m-6           |            |            | [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-7      srv-client1  srv-client2  srv-client3 [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpget -v2c -c public web1 sysUpTime.0[m
+[32m+[m[32m```[m
+ [m
+[31m-8           |            |            | [m
+[32m+[m[32m---[m
+ [m
+[31m-9         snmpd        snmpd        snmpd [m
+[32m+[m[32m## Verkkorajapinnat[m
+ [m
+[31m-Monitorointipalvelin kerää tietoja useilta palvelimilta samanaikaisesti. [m
+[32m+[m[32m| OID | Tarkoitus |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| ifDescr | Rajapinnan nimi |[m
+[32m+[m[32m| ifAdminStatus | Hallinnollinen tila |[m
+[32m+[m[32m| ifOperStatus | Todellinen toimintatila |[m
+ [m
+[31m-Community [m
+[32m+[m[32mEsimerkki:[m
+ [m
+[31m-SNMPv1- ja SNMPv2c-ympäristöissä käytetään community string -arvoja. [m
+[32m+[m[32m```bash[m
+[32m+[m[32msnmpwalk -v2c -c public web1 ifDescr[m
+[32m+[m[32m```[m
+ [m
+[31m-Esimerkki: [m
+[32m+[m[32mMahdollinen tulos:[m
+ [m
+[31m-1     public [m
+[32m+[m[32m```text[m
+[32m+[m[32mlo[m
+[32m+[m[32meth0[m
+[32m+[m[32m```[m
+ [m
+[31m-Community toimii eräänlaisena "salasanana", mutta sitä ei salata verkkoliikenteessä. [m
+[32m+[m[32m---[m
+ [m
+[31m-Tästä syystä sitä ei suositella tuotantoympäristöihin. [m
+[32m+[m[32m## Liikennelaskurit[m
+ [m
+[31m-SNMPv3-käyttäjä [m
+[32m+[m[32m| OID | Tarkoitus |[m
+[32m+[m[32m|----------|----------|[m
+[32m+[m[32m| ifInOctets | Vastaanotetut tavut |[m
+[32m+[m[32m| ifOutOctets | Lähetetyt tavut |[m
+ [m
+[31m-SNMPv3 käyttää käyttäjätunnuksia ja tarvittaessa salausta. [m
+[32m+[m[32mNäitä käytetään verkkoliikenteen mittaamiseen ja grafiikoiden tuottamiseen monitorointijärjestelmissä.[m
+ [m
+[31m-Esimerkiksi: [m
+[32m+[m[32m---[m
+ [m
+[31m-1     monitor [m
+[32m+[m[32m# SNMP Linux-palvelimella[m
+ [m
+[31m-SNMPv3 mahdollistaa turvallisen monitoroinnin myös verkoissa, joissa liikenteen luottamuksellisuus on tärkeää. [cisco.com], [learningne....cisco.com] [m
+[32m+[m[32mLinuxissa SNMP-agentti toteutetaan yleensä Net-SNMP-ohjelmistolla.[m
+ [m
+[31m-Tämän kurssin Week02-harjoituksessa opiskelija asentaa SNMP-agentin Linux-palvelimelle, määrittää monitorointikäyttäjän ja testaa tiedonkeruuta käytännössä. [m
+[32m+[m[32mAsennus:[m
+ [m
+[31m- [m
+[32m+[m[32m```bash[m
+[32m+[m[32mapt update[m
+[32m+[m[32mapt install snmp snmpd -y[m
+[32m+[m[32m```[m
+ [m
+[31m-SNMP osana verkonhallinnan kokonaisuutta [m
+[32m+[m[32mPalvelun tila:[m
+ [m
+[31m-SNMP ei ole irrallinen teknologia, vaan osa laajempaa verkonhallinnan kokonaisuutta. [m
+[32m+[m[32m```bash[m
+[32m+[m[32mservice snmpd status[m
+[32m+[m[32m```[m
+ [m
+[31m-1     Dokumentaatio [m
+[32m+[m[32mTyypillinen yhteys näyttää seuraavalta:[m
+ [m
+[31m-2           ↓ [m
+[32m+[m[32m```text[m
+[32m+[m[32m        SNMP Manager[m
+[32m+[m[32m          ansible[m
+ [m
+[31m-3          SNMP [m
+[32m+[m[32m              |[m
+[32m+[m[32m              |[m
+[32m+[m[32m          UDP 161[m
+[32m+[m[32m              |[m
+[32m+[m[32m              |[m
+ [m
+[31m-4           ↓ [m
+[32m+[m[32m            web1[m
+[32m+[m[32m           snmpd[m
+[32m+[m[32m```[m
+ [m
+[31m-5      Monitorointi [m
+[32m+[m[32mManager lähettää kyselyn, ja agentti palauttaa pyydetyn tiedon.[m
+ [m
+[31m-6           ↓ [m
+[32m+[m[32m---[m
+ [m
+[31m-7       Hälytykset [m
+[32m+[m[32m# Yhteenveto[m
+ [m
+[31m-8           ↓ [m
+[32m+[m[32mSNMP mahdollistaa verkkolaitteiden ja palvelimien tilatietojen keräämisen keskitetysti.[m
+ [m
+[31m-9      Häiriönhallinta [m
+[32m+[m[32mKurssin harjoituksissa tärkeimmät käsitteet ovat:[m
+ [m
+[31m-10           ↓ [m
+[32m+[m[32m- Manager[m
+[32m+[m[32m- Agent[m
+[32m+[m[32m- MIB[m
+[32m+[m[32m- OID[m
+[32m+[m[32m- Community String[m
+[32m+[m[32m- SNMPv2c[m
+[32m+[m[32m- SNMPv3[m
+[32m+[m[32m- snmpget[m
+[32m+[m[32m- snmpwalk[m
+ [m
+[31m-11       Kehittäminen [m
+[32m+[m[32mNäiden avulla voidaan kerätä perustiedot verkon laitteista sekä muodostaa pohja myöhemmille monitorointi- ja valvontaratkaisuille.[m
+ [m
+[31m-Verkonhallinta alkaa ympäristön tuntemisesta ja dokumentoinnista. Dokumentoiduista laitteista voidaan kerätä tietoa SNMP:n avulla. Kerätty tieto mahdollistaa monitoroinnin, jonka perusteella syntyy hälytyksiä. Hälytysten avulla havaitaan häiriöt, jotka analysoidaan ja korjataan. Lopuksi kerättyä tietoa käytetään ympäristön kehittämiseen, kapasiteetin suunnitteluun ja automaation rakentamiseen.[m
+ [m
+[31m-Lähteet [m
+[32m+[m[32m# Lähteet [m
+ [m
+ OpenTelemetry Documentation: Observability Primer [m
+ https://opentelemetry.io/docs/concepts/observability-primer/ [opentelemetry.io], [opentelemetry.io] [m
