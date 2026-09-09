@@ -218,6 +218,17 @@ ssh labadmin@clab-hamk-verkonhallinta-golden-web1
 - Check SSH config allows root login: `docker exec <container> grep PermitRootLogin /etc/ssh/sshd_config`
 - Restart SSH if needed: `docker exec <container> pkill -HUP sshd`
 
+### `unsupported locale setting`
+If Ansible fails before connecting to a host, use an available UTF-8 locale:
+```bash
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+```
+
+The control-node bootstrap configures this automatically for new sessions. For an
+existing control node, rerun `ansible-bootstrap.sh` or export the variables above
+before running `ansible-playbook`.
+
 ## Maintenance
 
 Update inventory when:
