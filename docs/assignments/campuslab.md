@@ -14,16 +14,17 @@ Laboratorion tavoitteena on opetella:
 ```mermaid
 flowchart TD
     server["Ubuntu Server<br/>Ansible Control Node<br/>Git Repository<br/>192.168.100.10"]
-    switch["Cisco SW1<br/>Management Switch<br/>192.168.100.21"]
-    r1["R1<br/>Cisco Router"]
-    r2["R2<br/>Cisco Router"]
+    switch1["Cisco SW1<br/>Management Switch<br/>192.168.100.21"]
+    switch2["Cisco SW2<br/>Access Switch<br/>(k&auml;ytt&auml;j&auml;verkko)"]
+    r1["R1<br/>Cisco Router<br/>192.168.100.11 / 172.16.0.1"]
+    r2["R2<br/>Cisco Router<br/>172.16.0.2 / 10.10.10.1"]
     workstation["Workstation<br/>Windows/Linux<br/>10.10.10.100"]
 
-    server --- switch
-    switch --- r1
-    switch --- r2
+    server --- switch1
+    switch1 --- r1
     r1 --- r2
-    r1 --- workstation
+    r2 --- switch2
+    switch2 --- workstation
 ```
 
 ---
@@ -43,6 +44,7 @@ flowchart TD
 - Cisco Router R1
 - Cisco Router R2
 - Cisco Switch SW1
+- Cisco Switch SW2
 
 ## Työasema
 
@@ -62,9 +64,10 @@ Verkon tarkoitus on mahdollistaa Ansible-hallinta.
 |---------|---------|
 | Ansible Server | 192.168.100.10/24 |
 | SW1 | 192.168.100.21/24 |
-| R1 | 192.168.100.11/24 |
-| R2 | 192.168.100.12/24 |
-| Gateway | Ei tarvita |
+| R1 (G0/0) | 192.168.100.11/24 |
+| Gateway | R1 (192.168.100.11) |
+
+> **Huom:** SW2 ja R2 eivät ole fyysisesti kiinni tässä verkossa (ks. topologia), joten niille ei anneta osoitetta 192.168.100.0/24-verkosta. R2 hallitaan reititetysti oman pisteestä-pisteeseen-osoitteensa kautta (172.16.0.2), koska Cisco IOS reitittää oletuksena suoraan kytkettyjen verkkojen välillä. SW2 ei ole mukana Ansible-inventaariossa, joten sen ei tarvitse olla saavutettavissa hallintaverkosta.
 
 ---
 
@@ -81,39 +84,41 @@ Verkon tarkoitus on mahdollistaa Ansible-hallinta.
 
 | Laite | Interface | Osoite |
 |---------|---------|---------|
-| R1 | G0/0 | 10.10.10.1/24 |
+| R2 | G0/0 | 10.10.10.1/24 |
 | Workstation | NIC | 10.10.10.100/24 |
+
+> Työasema on kiinni SW2:n kautta R2:n G0/0-interfaceen, mikä vastaa topologiakaaviota (R2 --- SW2 --- Workstation).
 
 ---
 
 # Topologian looginen rakenne
 
-```text
+```mermaid
+flowchart LR
+    subgraph MGMT["Management Network 192.168.100.0/24"]
+        ansible["Ansible Server<br/>192.168.100.10"]
+        sw1["SW1"]
+        ansible --- sw1
+    end
 
-Management Network
+    subgraph LINK["Router-to-Router 172.16.0.0/30"]
+        direction LR
+        r1if["R1 G0/1<br/>172.16.0.1"] --- r2if["R2 G0/1<br/>172.16.0.2"]
+    end
 
-192.168.100.0/24
+    subgraph DATA["Data Network 10.10.10.0/24"]
+        sw2["SW2"]
+        ws["Workstation<br/>10.10.10.100"]
+        sw2 --- ws
+    end
 
- Ansible
-    |
-    |
-   SW1
-  /   \
- R1   R2
-
-
-Data Network
-
-10.10.10.0/24
-      |
-      |
-      R1
-      |
-172.16.0.0/30
-      |
-      R2
-
+    sw1 --- r1["R1<br/>G0/0: 192.168.100.11"]
+    r1 --- r1if
+    r2if --- r2["R2<br/>G0/0: 10.10.10.1"]
+    r2 --- sw2
 ```
+
+R1 on ainoa laite, joka on fyysisesti kiinni hallintaverkossa. R2 saavutetaan Ansiblesta reititetysti R1:n kautta osoitteessa 172.16.0.2, koska R1 reitittää oletusarvoisesti suoraan kytkettyjen verkkojensa (192.168.100.0/24 ja 172.16.0.0/30) välillä.
 
 ---
 
@@ -146,46 +151,72 @@ ip ssh version 2
 ### R1
 
 ```cisco
+! G0/0 kohti SW1:tä / hallintaverkkoa
 interface g0/0
- ip address 10.10.10.1 255.255.255.0
+ ip address 192.168.100.11 255.255.255.0
  no shutdown
 
+! G0/1 reititysverkkoon R2:lle
 interface g0/1
  ip address 172.16.0.1 255.255.255.252
- no shutdown
-
-interface vlan 1
- ip address 192.168.100.11 255.255.255.0
  no shutdown
 ```
 
 ### R2
 
 ```cisco
+! G0/0 kohti SW2:ta / käyttäjäverkkoa
+interface g0/0
+ ip address 10.10.10.1 255.255.255.0
+ no shutdown
+
+! G0/1 reititysverkkoon R1:lle
 interface g0/1
  ip address 172.16.0.2 255.255.255.252
  no shutdown
+```
 
-interface vlan 1
- ip address 192.168.100.12 255.255.255.0
- no shutdown
+> Routerit eivät ole L3-kytkimiä, joten `interface vlan 1` ei ole niissä pätevä konfiguraatio - hallinta- ja käyttäjäverkot konfiguroidaan suoraan fyysisille G0/x-interfaceille. `ip routing` on Cisco IOS -reitittimillä päällä oletusarvoisesti, joten R1 reitittää automaattisesti hallintaverkon (192.168.100.0/24) ja reititysverkon (172.16.0.0/30) välillä - erillisiä staattisia reittejä ei tarvita R2:n saavuttamiseksi Ansiblesta. Staattiset verkot kannattaa kuitenkin lisätä reitittimille, jotta palvelimet ja työasemat pystyvät liikennöimään keskenään.
+
+```cisco
+!reitti R1
+ip route 10.10.10.0 255.255.255.0 172.16.0.2
+
+!reitti R2
+ip route 192.168.100.0 255.255.255.0 172.16.0.1
 ```
 
 ---
 
 # Ansible-palvelimen valmistelu
 
+Tehdään labran käyttöön uusi / uudet wsl distrot. Ennen aloittamista, vaihda wsl verkon tila muotoon mirrored. Tämä onnistuu yksinkertaisimmin windows sovelluksella wsl settings (löytyy start-valikosta)
+
+## WSL 
+
+```powershell
+wsl -l -o
+# valitaan sopiva distro, esim. ubuntu-24.04
+wsl --install Ubuntu-24.04 --name lab1-ubuntu
+
+# voit kirjautua uudelle distrolle jollei automaattisesti siirry
+
+wsl -d lab1-ubuntu
+
+```
+Ota luokan koneelle käyttöön uusi distro käyttäjätunnuksella tllabra ja salasanalla tllabra
+
+
 ## Tarvittavat paketit
 
 ```bash
 sudo apt update
 
-sudo apt install -y \
-    git \
-    python3-pip
+sudo apt install -y git python3-pip python3-paramiko
 
-pip install ansible
+sudo apt install ansible
 
+# vain jos asennus pip kautta.
 ansible-galaxy collection install cisco.ios
 ```
 
@@ -226,13 +257,21 @@ all:
         r1:
           ansible_host: 192.168.100.11
         r2:
-          ansible_host: 192.168.100.12
+          # R2 ei ole kiinni hallintaverkossa, mutta on reititetysti
+          # saavutettavissa oman G0/1-osoitteensa kautta R1:n läpi
+          ansible_host: 172.16.0.2
 
       vars:
         ansible_connection: network_cli
         ansible_network_os: cisco.ios.ios
         ansible_user: admin
         ansible_password: Salainen123
+        ansible_ssh_common_args:
+            -o HostKeyAlgorithms=+ssh-rsa
+            -o StrictHostKeyChecking=no
+            -o UserKnownHostsFile=/dev/null
+            -o PubkeyAcceptedAlgorithms=+ssh-rsa
+            -o KexAlgorithms=+diffie-hellman-group14-sha1
 ```
 
 ---
